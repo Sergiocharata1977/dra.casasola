@@ -5,16 +5,14 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase config for Dra. Lidia Casasola project
 const firebaseConfig = {
-    apiKey: "AIzaSyA3pNpCpesmqghB80o_jcE7_MMO9DdbtXQ",
-    authDomain: "lla-landding.firebaseapp.com",
-    projectId: "lla-landding",
-    storageBucket: "lla-landding.firebasestorage.app",
-    messagingSenderId: "262584332366",
-    appId: "1:262584332366:web:0256a8bfdfc917e411931f",
-    measurementId: "G-PB7H228XTZ"
+    apiKey: "AIzaSyArvoaEjaJpGNwkUbg3I5Cd68WovHOQGgo",
+    authDomain: "dra-casasola-web.firebaseapp.com",
+    projectId: "dra-casasola-web",
+    storageBucket: "dra-casasola-web.firebasestorage.app",
+    messagingSenderId: "787477542103",
+    appId: "1:787477542103:web:a69baa95716a38227dac92"
 };
 
 // Verificar que la configuración sea válida
