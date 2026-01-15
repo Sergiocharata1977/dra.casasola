@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función auxiliar para verificar si el usuario está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Función auxiliar para verificar si el usuario es admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Función auxiliar para verificar si el usuario es editor o admin
+    function isEditorOrAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor'];
+    }
+    
+    // ============ USERS ============
+    // Solo admins pueden crear, actualizar y eliminar usuarios
+    // Usuarios autenticados pueden leer su propio perfil
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ============ NOTICIAS ============
+    // Lectura pública para noticias publicadas
+    // Solo editores y admins pueden crear/actualizar/eliminar
+    match /noticias/{noticiaId} {
+      allow read: if resource.data.published == true || isEditorOrAdmin();
+      allow create, update, delete: if isEditorOrAdmin();
+    }
+    
+    // ============ EVENTOS ============
+    // Lectura pública para eventos públicos
+    // Solo editores y admins pueden crear/actualizar/eliminar
+    match /eventos/{eventoId} {
+      allow read: if resource.data.isPublic == true || isEditorOrAdmin();
+      allow create, update, delete: if isEditorOrAdmin();
+    }
+    
+    // ============ COLLABORATORS ============
+    // Solo admins pueden gestionar colaboradores
+    match /collaborators/{collaboratorId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ============ TASKS ============
+    // Solo usuarios autenticados pueden gestionar tareas
+    match /tasks/{taskId} {
+      allow read, create, update, delete: if isAuthenticated();
+    }
+  }
+}
