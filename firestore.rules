@@ -1,60 +1,18 @@
-rules_version = '2';
+rules_version='2'
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Función auxiliar para verificar si el usuario está autenticado
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    // Función auxiliar para verificar si el usuario es admin
-    function isAdmin() {
-      return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-    
-    // Función auxiliar para verificar si el usuario es editor o admin
-    function isEditorOrAdmin() {
-      return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor'];
-    }
-    
-    // ============ USERS ============
-    // Solo admins pueden crear, actualizar y eliminar usuarios
-    // Usuarios autenticados pueden leer su propio perfil
-    match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow create, update, delete: if isAdmin();
-    }
-    
-    // ============ NOTICIAS ============
-    // Lectura pública para noticias publicadas
-    // Solo editores y admins pueden crear/actualizar/eliminar
-    match /noticias/{noticiaId} {
-      allow read: if resource.data.published == true || isEditorOrAdmin();
-      allow create, update, delete: if isEditorOrAdmin();
-    }
-    
-    // ============ EVENTOS ============
-    // Lectura pública para eventos públicos
-    // Solo editores y admins pueden crear/actualizar/eliminar
-    match /eventos/{eventoId} {
-      allow read: if resource.data.isPublic == true || isEditorOrAdmin();
-      allow create, update, delete: if isEditorOrAdmin();
-    }
-    
-    // ============ COLLABORATORS ============
-    // Solo admins pueden gestionar colaboradores
-    match /collaborators/{collaboratorId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isAdmin();
-    }
-    
-    // ============ TASKS ============
-    // Solo usuarios autenticados pueden gestionar tareas
-    match /tasks/{taskId} {
-      allow read, create, update, delete: if isAuthenticated();
+    match /{document=**} {
+      // This rule allows anyone with your database reference to view, edit,
+      // and delete all data in your database. It is useful for getting
+      // started, but it is configured to expire after 30 days because it
+      // leaves your app open to attackers. At that time, all client
+      // requests to your database will be denied.
+      //
+      // Make sure to write security rules for your app before that time, or
+      // else all client requests to your database will be denied until you
+      // update your rules.
+      allow read, write: if request.time < timestamp.date(2026, 2, 14);
     }
   }
 }

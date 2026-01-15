@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Scale } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
@@ -28,7 +28,6 @@ export default function LoginPage() {
             if (result.success) {
                 router.push('/admin');
             } else {
-                // Traducir mensajes de error comunes
                 let errorMsg = result.error || 'Error al iniciar sesión';
                 if (errorMsg.includes('user-not-found')) {
                     errorMsg = 'Usuario no encontrado. ¿Deseas crear una cuenta?';
@@ -52,17 +51,19 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#5B2C83] p-4">
+        <div className="min-h-screen flex items-center justify-center bg-primary p-4">
             <Card className="w-full max-w-md border-0 shadow-2xl">
                 <CardHeader className="space-y-1 text-center pb-8 pt-8">
                     <div className="flex justify-center mb-6">
-                        <div className="bg-violet-100 p-4 rounded-full">
-                            <img src="/Logos-lla/Logo LLA Chaco-02.png" alt="Logo" className="w-24 h-auto" />
+                        <div className="bg-accent/20 p-4 rounded-full">
+                            <Scale className="w-12 h-12 text-accent" />
                         </div>
                     </div>
-                    <CardTitle className="text-3xl font-bold tracking-tight text-gray-900">Bienvenido</CardTitle>
-                    <CardDescription className="text-gray-500 text-lg">
-                        Sistema de Gestión Interna
+                    <CardTitle className="text-3xl font-serif font-bold tracking-tight text-foreground">
+                        Dra. Lidia Casasola
+                    </CardTitle>
+                    <CardDescription className="text-muted-foreground text-lg">
+                        Panel de Administración
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="px-8 pb-8">
@@ -78,11 +79,11 @@ export default function LoginPage() {
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="admin@lla-sudoeste.com"
+                                placeholder="doctora@casasola.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="h-12 border-gray-300 focus-visible:ring-violet-600"
+                                className="h-12 border-border focus-visible:ring-accent"
                             />
                         </div>
                         <div className="space-y-2">
@@ -93,21 +94,24 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="h-12 border-gray-300 focus-visible:ring-violet-600"
+                                className="h-12 border-border focus-visible:ring-accent"
                             />
                         </div>
-                        <Button className="w-full h-12 text-lg bg-violet-600 hover:bg-violet-700 font-bold" disabled={loading}>
+                        <Button
+                            className="w-full h-12 text-lg bg-accent text-accent-foreground hover:bg-accent/90 font-bold"
+                            disabled={loading}
+                        >
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Ingresar
                         </Button>
                     </form>
                     <div className="mt-4 text-center">
-                        <p className="text-xs text-slate-400">
-                            ¿Problemas para entrar? <a href="/setup" className="underline hover:text-slate-600">Configuración inicial</a>
+                        <p className="text-xs text-muted-foreground">
+                            ¿Problemas para entrar? <a href="/setup" className="underline hover:text-accent">Configuración inicial</a>
                         </p>
                     </div>
                 </CardContent>
             </Card>
-        </div >
+        </div>
     );
 }
