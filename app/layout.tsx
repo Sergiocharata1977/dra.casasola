@@ -16,10 +16,23 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Milei Sudoeste Chaco - La libertad avanza desde el interior',
-  description: 'Movimiento político del Sudoeste chaqueño comprometido con las ideas de libertad, desarrollo productivo y modernización del Estado.',
-  keywords: 'Milei, Chaco, Sudoeste, Libertad, Política, Argentina',
+  title: 'Dra. Lidia Casasola - Abogada Especialista en Derecho Previsional',
+  description: 'Experta en Derecho Previsional y Civil. Más de 20 años de experiencia en Jubilaciones, Pensiones y Sucesiones. Consulta gratuita.',
+  keywords: 'Abogada, Derecho Previsional, Jubilaciones, Pensiones, Sucesiones, ANSES, Lidia Casasola',
   generator: 'v0.app',
+  openGraph: {
+    title: 'Dra. Lidia Casasola - Abogada Especialista en Derecho Previsional',
+    description: 'Experta en Derecho Previsional y Civil. Más de 20 años de experiencia en Jubilaciones, Pensiones y Sucesiones.',
+    url: 'https://dra-casasola.vercel.app',
+    siteName: 'Dra. Lidia Casasola',
+    locale: 'es_AR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Dra. Lidia Casasola - Abogada',
+    description: 'Experta en Derecho Previsional y Civil. Consulta gratuita.',
+  },
   icons: {
     icon: [
       {
