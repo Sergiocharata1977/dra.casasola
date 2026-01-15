@@ -15,12 +15,35 @@ Este es el sitio web profesional de la **Dra. Lidia Casasola**, abogada especial
 | **Cargo** | Jefa del ANSES |
 | **Especialidad** | Derecho Previsional y Civil |
 | **Servicios** | Jubilaciones, Pensiones, Sucesiones |
-| **Stack** | Next.js + TailwindCSS + shadcn/ui |
+| **Stack** | Next.js + TailwindCSS + shadcn/ui + Firebase |
 
 ### URLs
 - **Production**: https://dra-casasola.vercel.app
 - **GitHub**: https://github.com/Sergiocharata1977/dra.casasola.git
 - **Vercel Project**: dra-casasola
+- **Firebase Console**: https://console.firebase.google.com/project/dra-casasola-web
+
+## 🔥 Firebase Configuration
+
+| Campo | Valor |
+|-------|-------|
+| **Project ID** | `dra-casasola-web` |
+| **App ID** | `1:787477542103:web:a69baa95716a38227dac92` |
+| **Auth Domain** | `dra-casasola-web.firebaseapp.com` |
+| **Storage Bucket** | `dra-casasola-web.firebasestorage.app` |
+
+### Firebase Services Enabled
+- ✅ Firestore Database (nam5)
+- ⏳ Authentication (Email/Password - needs to be enabled in console)
+- ⏳ Hosting (optional)
+
+### Firestore Collections
+```
+├── users/          # Admin users
+├── news/           # Legal news articles
+├── events/         # Legal events
+└── tasks/          # Task management (Kanban)
+```
 
 ## 📁 Project Structure
 
@@ -29,61 +52,56 @@ Este es el sitio web profesional de la **Dra. Lidia Casasola**, abogada especial
 │   ├── globals.css       # Theme colors (navy/gold)
 │   ├── layout.tsx        # Metadata & fonts
 │   ├── page.tsx          # Main landing page
-│   ├── admin/            # Admin panel (legacy)
-│   └── login/            # Login page (legacy)
+│   ├── login/            # Admin login
+│   ├── setup/            # Initial setup
+│   └── admin/            # Admin panel
+│       ├── layout.tsx    # Admin sidebar
+│       ├── page.tsx      # Dashboard
+│       ├── news/         # News management
+│       ├── events/       # Events management
+│       ├── tasks/        # Kanban tasks
+│       └── users/        # User management
 ├── components/
 │   ├── header.tsx        # Navigation header
-│   ├── hero.tsx          # Hero section with photo
+│   ├── hero.tsx          # Hero section
 │   ├── sobre-mi.tsx      # About section
 │   ├── servicios.tsx     # Services cards
 │   ├── contacto-form.tsx # Contact form
 │   ├── footer.tsx        # Footer
+│   ├── admin/            # Admin components
 │   └── ui/               # shadcn/ui components
-├── public/
-│   └── professional-female-lawyer.jpg
-└── contexts/
-    └── AuthContext.tsx   # Auth context (legacy)
+├── lib/
+│   ├── firebase.ts       # Firebase config
+│   ├── firebase/auth.ts  # Auth functions
+│   ├── services.ts       # CRUD services
+│   └── types.ts          # TypeScript types
+├── contexts/
+│   └── AuthContext.tsx   # Auth state
+└── public/
+    └── professional-female-lawyer.jpg
 ```
 
 ## 🎨 Design System
 
 ### Color Theme
-- **Primary**: Navy blue `oklch(0.28 0.08 245)` - Headers, hero bg, footer
+- **Primary**: Navy blue `oklch(0.28 0.08 245)` - Headers, hero bg, footer, sidebar
 - **Accent**: Gold `oklch(0.68 0.12 75)` - CTAs, badges, icons
 - **Background**: Light gray/white
 - **Text**: Dark navy
 
-### Typography
-- **Headings**: Serif font (Georgia)
-- **Body**: Sans-serif (Geist)
+## 🔐 Admin Panel Features
 
-## 📋 Key Components
+### Already Implemented
+| Module | Route | Description |
+|--------|-------|-------------|
+| Dashboard | `/admin` | Stats overview |
+| Noticias | `/admin/news` | Legal news CRUD |
+| Eventos | `/admin/events` | Events CRUD |
+| Tareas | `/admin/tasks` | Kanban board |
+| Usuarios | `/admin/users` | User management |
 
-### Header (`components/header.tsx`)
-- Sticky navigation
-- Menu: Inicio, Sobre Mí, Servicios, Contacto
-- Mobile responsive hamburger menu
-
-### Hero (`components/hero.tsx`)
-- Navy background
-- "Jefa del ANSES" badge
-- Professional photo
-- "20+ Años de Experiencia" floating badge
-- Two CTAs: "Consulta Gratuita" + "Ver Servicios"
-
-### Sobre Mí (`components/sobre-mi.tsx`)
-- Stats: 500+ Casos Exitosos, 98% Clientes Satisfechos
-- Credentials card: Especialización, Cargo, Experiencia
-
-### Servicios (`components/servicios.tsx`)
-- 3 service cards:
-  1. **Jubilaciones** - ordinaria, anticipada, reajuste
-  2. **Pensiones** - fallecimiento, invalidez, no contributivas
-  3. **Sucesiones** - declaratoria, testamentos, herencias
-
-### Contacto (`components/contacto-form.tsx`)
-- Contact form: nombre, email, teléfono, mensaje
-- Contact info: phone, email, address
+### Task Kanban States
+`backlog` → `todo` → `in-progress` → `done`
 
 ## 🚀 Development Commands
 
@@ -103,46 +121,23 @@ npm run build
 npx vercel --prod
 ```
 
-## 📝 History & Origin
+## ⚠️ IMPORTANT: Enable Firebase Auth
 
-Este proyecto fue originalmente **lla-sudoeste** (La Libertad Avanza - Sudoeste Chaco), un sitio político. Fue completamente rediseñado el **15 de enero de 2026** para convertirse en el sitio profesional de la Dra. Lidia Casasola.
+Before login works, you MUST enable Email/Password authentication:
 
-### Transformation Summary:
-1. Replaced violet political theme → Navy/gold professional theme
-2. Replaced political content → Legal services content
-3. Updated all components (header, hero, services, etc.)
-4. Created new GitHub repo: `Sergiocharata1977/dra.casasola`
-5. Deployed to Vercel: `dra-casasola.vercel.app`
+1. Go to: https://console.firebase.google.com/project/dra-casasola-web/authentication
+2. Click "Get started"
+3. Enable "Email/Password" provider
+4. Create a user for Dra. Casasola
 
-## ⚙️ Configuration Files
+## 📝 History
 
-- `package.json` - Dependencies and scripts
-- `tailwind.config.ts` - Tailwind configuration
-- `next.config.mjs` - Next.js configuration
-- `vercel.json` - Vercel deployment config
-- `components.json` - shadcn/ui configuration
-
-## 🔧 Quick Fixes
-
-### Update Contact Info
-Edit `components/contacto-form.tsx` and `components/footer.tsx`:
-- Phone number
-- Email address
-- Physical address
-
-### Update Social Sharing Preview
-Edit `app/layout.tsx`:
-- `metadata.title`
-- `metadata.description`
-- `metadata.openGraph.*`
-
-### Change Photo
-Replace `public/professional-female-lawyer.jpg` with new image.
+- **2026-01-15 AM**: Transformed from political site (lla-sudoeste) to law firm
+- **2026-01-15 PM**: Created Firebase project `dra-casasola-web`, configured Firestore, updated admin panel with new branding
 
 ## 📌 Notes for AI Agents
 
-1. This is a **static landing page** - no backend/database
-2. Legacy admin panel exists but is NOT used
-3. AuthContext exists from old project but can be removed
+1. Firebase project is `dra-casasola-web` (NOT the old `lla-landding`)
+2. Admin panel uses new navy/gold theme
+3. Auth must be enabled manually in Firebase Console
 4. When deploying changes: `git push` triggers auto-deploy on Vercel
-5. WhatsApp previews are cached - use Facebook Debugger to clear cache
