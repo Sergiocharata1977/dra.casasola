@@ -42,6 +42,12 @@ export function Header() {
               >
                 Noticias
               </Link>
+              <Link
+                href="/eventos"
+                className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+              >
+                Eventos
+              </Link>
               <Link href="/#contacto">
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Contacto</Button>
               </Link>
@@ -80,6 +86,12 @@ export function Header() {
                 className="text-sm font-medium text-foreground hover:text-accent transition-colors"
               >
                 Noticias
+              </Link>
+              <Link
+                href="/eventos"
+                className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+              >
+                Eventos
               </Link>
               <Link href="/#contacto">
                 <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Contacto</Button>

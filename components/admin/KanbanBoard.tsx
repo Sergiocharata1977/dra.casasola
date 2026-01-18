@@ -1,50 +1,144 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-
-interface Task {
-    id: string;
-    title: string;
-    columnId: string;
-    priority: 'low' | 'medium' | 'high';
-}
-
-const INITIAL_TASKS: Task[] = [
-    { id: '1', title: 'Diseñar flyers para evento 25 de Mayo', columnId: 'todo', priority: 'medium' },
-    { id: '2', title: 'Llamar a referentes de Villa Ángela', columnId: 'in-progress', priority: 'high' },
-    { id: '3', title: 'Actualizar padrón de afiliados', columnId: 'done', priority: 'low' },
-];
+import { Badge } from '@/components/ui/badge';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Plus, MoreVertical, Pencil, Trash2, Calendar, Loader2 } from 'lucide-react';
+import { TasksService } from '@/lib/services';
+import type { Task } from '@/lib/types';
+import { TaskFormDialog } from './TaskFormDialog';
+import Link from 'next/link';
 
 const COLUMNS = [
-    { id: 'todo', title: 'Por Hacer', color: '#e2e8f0' },
-    { id: 'in-progress', title: 'En Progreso', color: '#ddd6fe' },
-    { id: 'done', title: 'Completado', color: '#bbf7d0' },
+    { id: 'backlog', title: 'Backlog', color: 'bg-gray-50' },
+    { id: 'todo', title: 'Por Hacer', color: 'bg-blue-50' },
+    { id: 'in-progress', title: 'En Progreso', color: 'bg-amber-50' },
+    { id: 'done', title: 'Completado', color: 'bg-green-50' },
 ];
 
 export default function KanbanBoard() {
-    const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [draggingTask, setDraggingTask] = useState<string | null>(null);
 
-    const dragStart = (e: React.DragEvent, id: string) => {
-        e.dataTransfer.setData('taskId', id);
+    useEffect(() => {
+        loadTasks();
+    }, []);
+
+    const loadTasks = async () => {
+        try {
+            const data = await TasksService.getAll();
+            setTasks(data);
+        } catch (error) {
+            console.error('Error loading tasks:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const onDragOver = (e: React.DragEvent) => {
+    const handleDragStart = (e: React.DragEvent, taskId: string) => {
+        setDraggingTask(taskId);
+        e.dataTransfer.setData('taskId', taskId);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
     };
 
-    const onDrop = (e: React.DragEvent, columnId: string) => {
+    const handleDrop = async (e: React.DragEvent, newStatus: Task['status']) => {
+        e.preventDefault();
         const taskId = e.dataTransfer.getData('taskId');
-        setTasks(tasks.map(t => t.id === taskId ? { ...t, columnId } : t));
+        if (!taskId) return;
+
+        // Optimistic update
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+        setDraggingTask(null);
+
+        try {
+            await TasksService.update(taskId, { status: newStatus });
+        } catch (error) {
+            console.error('Error updating task:', error);
+            loadTasks(); // Revert on error
+        }
     };
+
+    const handleEdit = (task: Task) => {
+        setEditingTask(task);
+        setDialogOpen(true);
+    };
+
+    const handleDelete = async (taskId: string) => {
+        if (!confirm('¿Eliminar esta tarea?')) return;
+
+        try {
+            await TasksService.delete(taskId);
+            setTasks(prev => prev.filter(t => t.id !== taskId));
+        } catch (error) {
+            console.error('Error deleting task:', error);
+        }
+    };
+
+    const handleNewTask = () => {
+        setEditingTask(null);
+        setDialogOpen(true);
+    };
+
+    const handleDialogClose = () => {
+        setDialogOpen(false);
+        setEditingTask(null);
+    };
+
+    const handleSuccess = () => {
+        handleDialogClose();
+        loadTasks();
+    };
+
+    const getTasksByStatus = (status: string) => {
+        return tasks.filter(t => t.status === status);
+    };
+
+    const getPriorityBadge = (priority: string) => {
+        const styles: Record<string, string> = {
+            urgent: 'bg-red-100 text-red-700',
+            high: 'bg-orange-100 text-orange-700',
+            medium: 'bg-yellow-100 text-yellow-700',
+            low: 'bg-green-100 text-green-700',
+        };
+        const labels: Record<string, string> = {
+            urgent: 'Urgente',
+            high: 'Alta',
+            medium: 'Media',
+            low: 'Baja',
+        };
+        return (
+            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${styles[priority] || styles.medium}`}>
+                {labels[priority] || priority}
+            </span>
+        );
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-96">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-gray-900">Gestión de Tareas (Kanban)</h1>
-                <Button className="bg-violet-600 hover:bg-violet-700 font-bold">
+                <h1 className="text-3xl font-bold text-gray-900">Gestión de Tareas</h1>
+                <Button onClick={handleNewTask} className="bg-primary hover:bg-primary/90 font-bold">
                     <Plus className="mr-2 h-4 w-4" /> Nueva Tarea
                 </Button>
             </div>
@@ -53,38 +147,83 @@ export default function KanbanBoard() {
                 {COLUMNS.map(col => (
                     <div
                         key={col.id}
-                        className="flex-shrink-0 w-80 bg-gray-100 rounded-xl flex flex-col max-h-full"
-                        onDragOver={onDragOver}
-                        onDrop={(e) => onDrop(e, col.id)}
+                        className={`flex-shrink-0 w-80 ${col.color} rounded-xl flex flex-col max-h-full shadow-sm`}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, col.id as Task['status'])}
                     >
-                        <div className="p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-gray-100 rounded-t-xl z-10">
+                        <div className="p-4 flex items-center justify-between sticky top-0 rounded-t-xl z-10">
                             <h3 className="font-bold text-gray-700">{col.title}</h3>
-                            <span className="bg-white px-2 py-0.5 rounded-full text-xs font-bold text-gray-500 shadow-sm">
-                                {tasks.filter(t => t.columnId === col.id).length}
-                            </span>
+                            <Badge variant="secondary" className="bg-white shadow-sm">
+                                {getTasksByStatus(col.id).length}
+                            </Badge>
                         </div>
 
                         <div className="p-3 space-y-3 overflow-y-auto flex-1">
-                            {tasks.filter(t => t.columnId === col.id).map(task => (
-                                <div
+                            {getTasksByStatus(col.id).map(task => (
+                                <Card
                                     key={task.id}
                                     draggable
-                                    onDragStart={(e) => dragStart(e, task.id)}
-                                    className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+                                    onDragStart={(e) => handleDragStart(e, task.id)}
+                                    className={`cursor-grab active:cursor-grabbing hover:shadow-lg transition-all bg-white shadow-md border-0 ${draggingTask === task.id ? 'opacity-50 rotate-2' : ''
+                                        }`}
                                 >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${task.priority === 'high' ? 'bg-red-100 text-red-700' :
-                                                task.priority === 'medium' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
-                                            }`}>
-                                            {task.priority}
-                                        </span>
-                                    </div>
-                                    <p className="font-medium text-gray-900 text-sm">{task.title}</p>
-                                </div>
+                                    <CardContent className="p-4">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex-1">
+                                                {getPriorityBadge(task.priority)}
+                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                                        <MoreVertical className="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={`/admin/tasks/${task.id}`}>
+                                                            <Pencil className="w-4 h-4 mr-2" />
+                                                            Ver Detalles
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleEdit(task)}>
+                                                        <Pencil className="w-4 h-4 mr-2" />
+                                                        Editar
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="text-red-600"
+                                                        onClick={() => handleDelete(task.id)}
+                                                    >
+                                                        <Trash2 className="w-4 h-4 mr-2" />
+                                                        Eliminar
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+
+                                        <Link href={`/admin/tasks/${task.id}`}>
+                                            <h4 className="font-medium text-gray-900 text-sm mb-1 hover:text-primary cursor-pointer">
+                                                {task.title}
+                                            </h4>
+                                        </Link>
+
+                                        {task.description && (
+                                            <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+                                                {task.description}
+                                            </p>
+                                        )}
+
+                                        {task.dueDate && (
+                                            <div className="flex items-center gap-1 text-xs text-gray-400">
+                                                <Calendar className="h-3 w-3" />
+                                                {new Date(task.dueDate).toLocaleDateString('es-ES')}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
                             ))}
 
-                            {tasks.filter(t => t.columnId === col.id).length === 0 && (
-                                <div className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-300 rounded-lg">
+                            {getTasksByStatus(col.id).length === 0 && (
+                                <div className="text-center py-8 text-gray-400 text-sm rounded-lg bg-white/50 shadow-inner">
                                     Arrastra tareas aquí
                                 </div>
                             )}
@@ -92,6 +231,13 @@ export default function KanbanBoard() {
                     </div>
                 ))}
             </div>
+
+            <TaskFormDialog
+                open={dialogOpen}
+                onOpenChange={handleDialogClose}
+                task={editingTask}
+                onSuccess={handleSuccess}
+            />
         </div>
     );
 }
