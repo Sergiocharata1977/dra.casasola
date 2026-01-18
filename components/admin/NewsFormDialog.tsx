@@ -65,15 +65,22 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
         setLoading(true);
 
         try {
-            const newsData = {
+            // Build data object without undefined values (Firebase doesn't accept undefined)
+            const newsData: Record<string, unknown> = {
                 title: formData.title,
-                summary: formData.summary || undefined,
                 content: formData.content,
-                imageUrl: formData.imageUrl || undefined,
                 author: formData.author,
                 published: formData.published,
-                tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+                publishedAt: formData.published ? new Date().toISOString() : null,
             };
+
+            // Only add optional fields if they have values
+            if (formData.summary) newsData.summary = formData.summary;
+            if (formData.imageUrl) newsData.imageUrl = formData.imageUrl;
+            if (formData.tags) {
+                const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+                if (tagsArray.length > 0) newsData.tags = tagsArray;
+            }
 
             if (news) {
                 await NewsService.update(news.id, newsData);

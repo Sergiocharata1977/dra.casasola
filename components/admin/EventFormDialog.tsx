@@ -34,6 +34,7 @@ export function EventFormDialog({ open, onOpenChange, event, onSuccess }: EventF
         location: '',
         capacity: '',
         isPublic: true,
+        organizer: '',
     });
 
     useEffect(() => {
@@ -41,11 +42,12 @@ export function EventFormDialog({ open, onOpenChange, event, onSuccess }: EventF
             setFormData({
                 title: event.title,
                 description: event.description,
-                startDate: event.startDate.split('T')[0], // Format for input type="date"
+                startDate: event.startDate.split('T')[0],
                 endDate: event.endDate?.split('T')[0] || '',
                 location: event.location,
                 capacity: event.capacity?.toString() || '',
                 isPublic: event.isPublic,
+                organizer: event.organizer || '',
             });
         } else {
             setFormData({
@@ -56,6 +58,7 @@ export function EventFormDialog({ open, onOpenChange, event, onSuccess }: EventF
                 location: '',
                 capacity: '',
                 isPublic: true,
+                organizer: '',
             });
         }
     }, [event, open]);
@@ -65,15 +68,19 @@ export function EventFormDialog({ open, onOpenChange, event, onSuccess }: EventF
         setLoading(true);
 
         try {
-            const eventData = {
+            // Build data object without undefined values (Firebase doesn't accept undefined)
+            const eventData: Record<string, unknown> = {
                 title: formData.title,
                 description: formData.description,
                 startDate: new Date(formData.startDate).toISOString(),
-                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
                 location: formData.location,
-                capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
                 isPublic: formData.isPublic,
+                organizer: formData.organizer || 'Dra. Lidia Casasola',
             };
+
+            // Only add optional fields if they have values
+            if (formData.endDate) eventData.endDate = new Date(formData.endDate).toISOString();
+            if (formData.capacity) eventData.capacity = parseInt(formData.capacity);
 
             if (event) {
                 await EventsService.update(event.id, eventData);
