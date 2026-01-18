@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { NewsService } from '@/lib/services';
 import type { News } from '@/lib/types';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 interface NewsFormDialogProps {
     open: boolean;
@@ -144,13 +145,11 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="imageUrl">URL de Imagen</Label>
-                        <Input
-                            id="imageUrl"
-                            type="url"
-                            value={formData.imageUrl}
-                            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                            placeholder="https://ejemplo.com/imagen.jpg"
+                        <Label>Imagen</Label>
+                        <ImageUpload
+                            currentUrl={formData.imageUrl}
+                            onImageUploaded={(url) => setFormData({ ...formData, imageUrl: url })}
+                            folder="news"
                         />
                     </div>
 

@@ -21,22 +21,28 @@ export function Header() {
           {/* Desktop navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline gap-6">
-              <Link href="#inicio" className="text-sm font-medium text-foreground hover:text-accent transition-colors">
+              <Link href="/#inicio" className="text-sm font-medium text-foreground hover:text-accent transition-colors">
                 Inicio
               </Link>
               <Link
-                href="#sobre-mi"
+                href="/#sobre-mi"
                 className="text-sm font-medium text-foreground hover:text-accent transition-colors"
               >
                 Sobre Mí
               </Link>
               <Link
-                href="#servicios"
+                href="/#servicios"
                 className="text-sm font-medium text-foreground hover:text-accent transition-colors"
               >
                 Servicios
               </Link>
-              <Link href="#contacto">
+              <Link
+                href="/noticias"
+                className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+              >
+                Noticias
+              </Link>
+              <Link href="/#contacto">
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Contacto</Button>
               </Link>
             </div>
@@ -54,22 +60,28 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden pb-4">
             <div className="flex flex-col gap-4">
-              <Link href="#inicio" className="text-sm font-medium text-foreground hover:text-accent transition-colors">
+              <Link href="/#inicio" className="text-sm font-medium text-foreground hover:text-accent transition-colors">
                 Inicio
               </Link>
               <Link
-                href="#sobre-mi"
+                href="/#sobre-mi"
                 className="text-sm font-medium text-foreground hover:text-accent transition-colors"
               >
                 Sobre Mí
               </Link>
               <Link
-                href="#servicios"
+                href="/#servicios"
                 className="text-sm font-medium text-foreground hover:text-accent transition-colors"
               >
                 Servicios
               </Link>
-              <Link href="#contacto">
+              <Link
+                href="/noticias"
+                className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+              >
+                Noticias
+              </Link>
+              <Link href="/#contacto">
                 <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Contacto</Button>
               </Link>
             </div>
