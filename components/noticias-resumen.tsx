@@ -29,9 +29,9 @@ export function NoticiasResumen() {
 
     if (loading) {
         return (
-            <section className="py-16 bg-gray-50">
+            <section className="py-20 bg-gray-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto" />
                 </div>
             </section>
         );
@@ -42,14 +42,17 @@ export function NoticiasResumen() {
     }
 
     return (
-        <section id="noticias" className="py-16 bg-gray-50">
+        <section id="noticias" className="py-20 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary mb-4">
-                        Noticias Legales
+                <div className="text-center mb-14">
+                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 block">
+                        Blog
+                    </span>
+                    <h2 className="text-3xl md:text-4xl font-sans font-bold text-gray-900 mb-4 tracking-tight">
+                        Últimas Noticias
                     </h2>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                        Mantente informado sobre las últimas novedades en derecho previsional y civil
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Información actualizada sobre temas legales de interés
                     </p>
                 </div>
 
@@ -57,23 +60,23 @@ export function NoticiasResumen() {
                     {news.map((item) => (
                         <article
                             key={item.id}
-                            className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                            className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group"
                         >
-                            <div className="h-48 bg-gray-200 overflow-hidden">
+                            <div className="h-48 bg-gray-100 overflow-hidden">
                                 {item.imageUrl ? (
                                     <img
                                         src={item.imageUrl}
                                         alt={item.title}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                    <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gradient-to-br from-gray-100 to-gray-200">
                                         <span className="text-5xl">📰</span>
                                     </div>
                                 )}
                             </div>
                             <div className="p-6">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                                     <Calendar className="h-4 w-4" />
                                     <time>
                                         {new Date(item.publishedAt || item.createdAt).toLocaleDateString('es-ES', {
@@ -83,15 +86,15 @@ export function NoticiasResumen() {
                                         })}
                                     </time>
                                 </div>
-                                <h3 className="text-xl font-bold text-primary mb-2 line-clamp-2">
+                                <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-gray-700 transition-colors">
                                     {item.title}
                                 </h3>
-                                <p className="text-muted-foreground line-clamp-3 mb-4">
+                                <p className="text-gray-600 line-clamp-3 mb-4">
                                     {item.summary || item.content.substring(0, 150) + '...'}
                                 </p>
                                 <Link
                                     href={`/noticias/${item.id}`}
-                                    className="text-accent font-medium hover:underline inline-flex items-center gap-1"
+                                    className="text-gray-900 font-semibold hover:gap-2 inline-flex items-center gap-1 transition-all"
                                 >
                                     Leer más <ArrowRight className="h-4 w-4" />
                                 </Link>
@@ -100,9 +103,9 @@ export function NoticiasResumen() {
                     ))}
                 </div>
 
-                <div className="text-center mt-10">
+                <div className="text-center mt-12">
                     <Link href="/noticias">
-                        <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                        <Button size="lg" variant="outline" className="rounded-full border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-8">
                             Ver todas las noticias
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>

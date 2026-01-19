@@ -1,14 +1,9 @@
 import type { Metadata } from 'next'
-import { Montserrat, Inter } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { WhatsAppButton } from '@/components/whatsapp-button'
 import './globals.css'
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ['400', '700', '800', '900'],
-  variable: '--font-montserrat'
-})
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,13 +11,13 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Dra. Lidia Casasola - Abogada Especialista en Derecho Previsional',
-  description: 'Experta en Derecho Previsional y Civil. Más de 20 años de experiencia en Jubilaciones, Pensiones y Sucesiones. Consulta gratuita.',
-  keywords: 'Abogada, Derecho Previsional, Jubilaciones, Pensiones, Sucesiones, ANSES, Lidia Casasola',
+  title: 'Dra. Lidia Casasola - Abogada Especialista en Derecho Civil',
+  description: 'Abogada experta en Derecho Civil, Sucesiones y Familia. Más de 20 años de experiencia. Asesoramiento legal profesional en Charata, Chaco.',
+  keywords: 'Abogada, Derecho Civil, Sucesiones, Divorcios, Familia, Contratos, Lidia Casasola, Charata, Chaco',
   generator: 'v0.app',
   openGraph: {
-    title: 'Dra. Lidia Casasola - Abogada Especialista en Derecho Previsional',
-    description: 'Experta en Derecho Previsional y Civil. Más de 20 años de experiencia en Jubilaciones, Pensiones y Sucesiones.',
+    title: 'Dra. Lidia Casasola - Abogada Especialista en Derecho Civil',
+    description: 'Abogada experta en Derecho Civil, Sucesiones y Familia. Más de 20 años de experiencia.',
     url: 'https://dra-casasola.vercel.app',
     siteName: 'Dra. Lidia Casasola',
     locale: 'es_AR',
@@ -31,7 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Dra. Lidia Casasola - Abogada',
-    description: 'Experta en Derecho Previsional y Civil. Consulta gratuita.',
+    description: 'Abogada experta en Derecho Civil, Sucesiones y Familia.',
   },
   icons: {
     icon: [
@@ -59,9 +54,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${montserrat.variable} ${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
           {children}
+          <WhatsAppButton />
         </AuthProvider>
         <Analytics />
       </body>
