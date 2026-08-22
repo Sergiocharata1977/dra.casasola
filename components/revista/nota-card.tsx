@@ -85,6 +85,7 @@ export function NotaApertura({ nota }: { nota: News }) {
           alt={nota.title}
           seccion={nota.seccion}
           formato="banda"
+          conVideo={Boolean(nota.videoUrl)}
           priority
         />
       </Link>
@@ -141,7 +142,13 @@ export function NotaDestacada({ nota }: { nota: News }) {
   return (
     <article className="grupo-nota">
       <Link href={hrefNota(nota)} className="block">
-        <FotoNota src={nota.imageUrl} alt={nota.title} seccion={nota.seccion} formato="tapa" />
+        <FotoNota
+          src={nota.imageUrl}
+          alt={nota.title}
+          seccion={nota.seccion}
+          formato="tapa"
+          conVideo={Boolean(nota.videoUrl)}
+        />
       </Link>
       <div className="mt-3">
         <Volanta nota={nota} />
@@ -204,7 +211,13 @@ export function NotaLista({ nota }: { nota: News }) {
   return (
     <article className="grupo-nota grid gap-4 border-b border-filete py-6 first:pt-0 sm:grid-cols-[200px_1fr]">
       <Link href={hrefNota(nota)} className="block">
-        <FotoNota src={nota.imageUrl} alt={nota.title} seccion={nota.seccion} formato="cuadro" />
+        <FotoNota
+          src={nota.imageUrl}
+          alt={nota.title}
+          seccion={nota.seccion}
+          formato="cuadro"
+          conVideo={Boolean(nota.videoUrl)}
+        />
       </Link>
       <div>
         <Volanta nota={nota} />

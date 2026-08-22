@@ -4,6 +4,177 @@
 > entradas anteriores a 2026-08-17 son de esas etapas y se conservan solo como
 > historia: no describen la revista.
 
+## Linea editorial
+
+Esta seccion no es decorativa: define como se clasifica cada nota y por que
+la portada la ubica donde la ubica. Sale del editorial de apertura firmado
+por la direccion, no de una redaccion generica.
+
+**Que es No Pauta.** Una revista que analiza la realidad de Charata y del
+sudoeste chaqueno desde una perspectiva independiente, sin compromisos
+politicos, partidarios ni institucionales. No es un medio opositor ni
+oficialista, y no es vocera de gobiernos, partidos, empresas ni sectores.
+
+**La pregunta central.** El debate publico local suele quedar atrapado en la
+grieta: una parte defiende a ciegas y la otra critica por postura. La
+pregunta que ordena la cobertura es otra: que es lo que realmente le conviene
+a Charata y a sus ciudadanos.
+
+**El criterio unico.** Se evalua la medida, no quien la firmo. Una buena
+decision publica se reconoce aunque venga de un adversario; una mala se
+senala aunque venga de alguien cercano.
+
+**Metodo.** Antes de opinar, observar; antes de concluir, buscar datos.
+Cuando hay cifras se muestran; cuando hay dudas se reconocen; cuando lo que
+se publica es una opinion, se presenta como tal.
+
+**Registro.** Los temas complejos no se dejan a los especialistas. Presupuesto,
+obra publica, salud, infraestructura y produccion se explican en lenguaje
+llano, con el objetivo declarado de que el lector pueda leer informacion
+publica por su cuenta.
+
+**Territorio.** Charata es el centro de observacion. La cobertura se extiende
+progresivamente a Las Brenas, Corzuela, General Pinedo, Hermoso Campo, Villa
+Angela y Saenz Pena, con los que hay vinculos productivos y sociales.
+
+**Alcance.** No solo politica. Tambien quienes producen y construyen:
+comerciantes, productores, docentes, emprendedores, deportistas y gestores
+culturales.
+
+**El nombre.** No Pauta es la revista que no recibe pauta oficial. El nombre
+es la promesa: agenda no condicionada.
+
+### Como se traduce en el sistema
+
+Esto no queda en el papel; el codigo lo aplica:
+
+- **`editorial` y `opinion` son secciones distintas y no son intercambiables.**
+  En `editorial` habla la revista: la nota puede abrir la tapa y no lleva
+  descargo. En `opinion` habla un columnista: la nota va a la columna lateral
+  "Voz Libre" y lleva el aviso de que las ideas son de quien las firma. La
+  distincion vive en `esColumnaDeOpinion()` en `lib/portada.ts`.
+- **Un editorial cargado como opinion desaparece de la tapa.** Le paso a la
+  primera nota publicada. Ver la entrada del 2026-08-22.
+- **No hay contenido de relleno.** Si la revista no publico, la portada dice
+  que no publico. Se elimino `lib/demo-content.ts`, que armaba una tapa falsa
+  con notas inventadas cuando Firestore volvia vacio.
+- **Las paginas institucionales todavia no reflejan esto.** El texto de
+  `/institucional/linea-editorial`, `/institucional/quienes-somos` y
+  `/institucional/staff` lo redacto la IA como punto de partida y sigue siendo
+  generico. Queda pendiente reemplazarlo por el criterio real de la direccion,
+  que ahora esta escrito arriba.
+
+## Actualizacion 2026-08-22 - Se corrige la primera nota, se saca el relleno y entra el video
+
+### Por que la nota escrita "no salia"
+
+Salia, pero en el peor lugar posible. La nota estaba publicada y visible en el
+HTML de produccion; lo que fallaba era donde la ubicaba la portada.
+
+La causa: se cargo con `seccion: opinion`. `esColumnaDeOpinion()` trata como
+columna firmada a todo lo que este en esa seccion, asi que la nota se fue a la
+columna lateral "Voz Libre" en letra chica. Como era la unica nota publicada,
+no quedaba ninguna nota informativa para la apertura y la columna central de la
+tapa mostraba, literalmente, "Todavia no hay notas publicadas" al lado de la
+nota que si estaba publicada.
+
+Se corrigio en dos frentes:
+
+- **En el modelo.** Se creo la seccion `editorial`, distinta de `opinion`. Es
+  la diferencia entre la revista hablando y un columnista hablando: un editorial
+  puede abrir la tapa y no lleva el descargo de responsabilidad personal.
+- **En el armado de la tapa.** `armarPortada()` ya no deja la apertura vacia
+  cuando lo unico publicado son columnas: antes de mostrar el hueco, abre con
+  la columna mejor rankeada. El estado vacio quedo solo para cuando de verdad
+  no hay nada.
+
+### Contenido de muestra eliminado
+
+Se borro `lib/demo-content.ts` y todo el camino que lo usaba (`armarPortada`,
+`notasParaListado`, `getNota`, los avisos `esDemo` de la portada y del listado).
+
+Eran doce notas inventadas, con firma "Redaccion No Pauta" y titulares
+verosimiles sobre fallos de la Corte, crisis de gabinete e inflacion, que se
+mostraban cada vez que Firestore devolvia cero notas publicadas. Llevaban un
+cartel de "portada de demostracion", pero el cartel se veia solo en la tapa: en
+`/noticias` y en cada seccion las notas falsas aparecian mezcladas como si
+fueran material publicado, y cada una tenia URL propia y compartible. Para un
+medio cuya premisa es que se puede verificar lo que publica, era una bomba de
+tiempo. Ahora, sin notas, la revista dice que no publico.
+
+### Videos propios
+
+Se puede subir video a la nota, alojado en el propio sitio.
+
+- `videoUrl` y `videoEpigrafe` en `lib/types.ts`.
+- `components/ui/video-upload.tsx`: subida con barra de avance
+  (`uploadBytesResumable`, porque un MP4 tarda y sin progreso parece colgado).
+  Tope 100 MB, con recomendacion de quedarse debajo de 50 MB.
+- `components/revista/video-nota.tsx`: `<video>` nativo, sin libreria de
+  terceros ni cookies ajenas. `preload="metadata"` a proposito: abrir la nota
+  no descarga el video de quien no le va a dar play, y en Storage se paga por
+  byte descargado.
+- Si la nota tiene video, el video es la pieza principal y la foto pasa a ser
+  la caratula del reproductor. En la tapa y en los listados, la foto lleva un
+  distintivo "Video".
+- `storage.rules`: carpeta `news-video/`, lectura publica, escritura con sesion,
+  solo `video/*` y hasta 100 MB. **Hay que desplegar las reglas** (ver abajo).
+- Se agrega `VideoObject` a los datos estructurados de la nota, para que el
+  video aparezca en la busqueda de Google.
+
+**Nota de costo, para tenerla escrita:** Firebase Storage cobra almacenamiento
+y transferencia. Un video de 80 MB visto mil veces son 80 GB de trafico. Para
+material largo conviene un canal propio de YouTube y enlazarlo; la subida
+directa esta pensada para piezas cortas y editadas.
+
+### Cuerpo de nota con jerarquia
+
+Antes el cuerpo se partia por lineas en blanco y todo salia como parrafo, asi
+que los intertitulos de la nota editorial se leian como texto corrido. Ahora
+`components/revista/cuerpo-nota.tsx` entiende dos marcas, las mismas que ya
+usaban las paginas institucionales:
+
+- `## Subtitulo` para intertitulo
+- `- item` para vinieta
+
+### Bug arreglado de paso
+
+En el formulario de notas, sacar la foto de una nota ya guardada no tenia
+efecto: los campos opcionales solo se enviaban cuando tenian valor, y
+`updateDoc` hace merge, asi que Firestore conservaba el valor viejo. Ahora al
+editar se escribe `null` explicito.
+
+### Pendiente inmediato
+
+1. **Correr el script que corrige la nota en Firestore.** El codigo ya soporta
+   la seccion `editorial`, pero el documento sigue cargado como `opinion`:
+
+   ```
+   node scripts/corregir-editorial.mjs
+   ```
+
+   Pide mail y clave de un usuario del panel, porque las reglas exigen sesion
+   para escribir en `news`. Deja la nota en `seccion: editorial`,
+   `jerarquia: apertura`, agrega los intertitulos y las vinietas al cuerpo y
+   corrige la firma a "Roberto Garcia" con tilde. El texto del autor no se
+   toca: el script valida que, sacando las marcas de formato, el cuerpo sea
+   identico al original y aborta si cambio.
+
+2. **Desplegar las reglas de Storage**, o la subida de video va a fallar con
+   permiso denegado:
+
+   ```
+   firebase deploy --only storage --project revistanopauta
+   ```
+
+### Observacion sobre el texto de la nota
+
+Una sola, y queda a criterio de la direccion: "Nuestra metodologia sera simple
+pero en extincion". Se entiende (el metodo es simple y esta desapareciendo),
+pero el "pero" contrapone dos cosas que no se oponen entre si. No se cambio
+nada: es prosa del autor, no un error de datos. El resto del texto esta bien
+escrito y sin errores de acentuacion ni de nombres propios.
+
 ## Actualizacion 2026-08-17 - Firebase propio y arreglo de la conexion
 
 Estado: la revista quedo apuntando a su propio proyecto Firebase

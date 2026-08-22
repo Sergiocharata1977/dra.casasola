@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { esColumnaDeOpinion, fechaLarga, minutosDeLectura } from '@/lib/portada'
 import { nombreSeccion, siteConfig } from '@/lib/site-config'
 import type { News } from '@/lib/types'
+import { CuerpoNota } from '@/components/revista/cuerpo-nota'
 import { FotoNota } from '@/components/revista/foto-nota'
+import { VideoNota } from '@/components/revista/video-nota'
 import { NotaDestacada, TituloBloque } from '@/components/revista/nota-card'
 
 /**
@@ -20,10 +22,7 @@ export function NotaDetalle({
   nota: News
   relacionadas: News[]
 }) {
-  const parrafos = (nota.content || '')
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean)
+  const tieneVideo = Boolean(nota.videoUrl)
   const esOpinion = esColumnaDeOpinion(nota)
 
   return (
@@ -79,7 +78,21 @@ export function NotaDetalle({
           </p>
         )}
 
-        {nota.imageUrl || !esOpinion ? (
+        {/*
+          Pieza principal de la nota. Si hay video, manda el video y la foto
+          queda de caratula del reproductor: repetir las dos cosas una arriba
+          de la otra empuja el texto fuera de la primera pantalla.
+        */}
+        {tieneVideo ? (
+          <figure className="mt-7">
+            <VideoNota src={nota.videoUrl as string} poster={nota.imageUrl} />
+            {(nota.videoEpigrafe || nota.epigrafe) && (
+              <figcaption className="mt-2 border-b border-filete pb-3 font-serif text-xs italic leading-snug text-tinta-3">
+                {nota.videoEpigrafe || nota.epigrafe}
+              </figcaption>
+            )}
+          </figure>
+        ) : nota.imageUrl || !esOpinion ? (
           <figure className="mt-7">
             <FotoNota
               src={nota.imageUrl}
@@ -99,13 +112,13 @@ export function NotaDetalle({
           </figure>
         ) : null}
 
-        <div className="cuerpo-nota con-capitular mt-8">
-          {parrafos.length > 0 ? (
-            parrafos.map((p, i) => <p key={i}>{p}</p>)
-          ) : (
+        {nota.content?.trim() ? (
+          <CuerpoNota texto={nota.content} capitular className="mt-8" />
+        ) : (
+          <div className="cuerpo-nota mt-8">
             <p>{nota.summary}</p>
-          )}
-        </div>
+          </div>
+        )}
 
         {nota.tags && nota.tags.length > 0 && (
           <div className="mt-10 flex flex-wrap gap-2 border-t border-filete pt-5">

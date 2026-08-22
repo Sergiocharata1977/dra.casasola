@@ -9,6 +9,8 @@ type FotoNotaProps = {
   formato?: 'tapa' | 'cuadro' | 'banda'
   className?: string
   priority?: boolean
+  /** Dibuja el distintivo de play: la nota tiene video. */
+  conVideo?: boolean
 }
 
 const proporciones: Record<NonNullable<FotoNotaProps['formato']>, string> = {
@@ -19,6 +21,9 @@ const proporciones: Record<NonNullable<FotoNotaProps['formato']>, string> = {
 
 /**
  * Recuadro fotografico de la nota.
+ *
+ * Si la nota tiene video, marca el recuadro con un distintivo de play para
+ * que el lector sepa antes de entrar que hay material audiovisual.
  *
  * Cuando la nota todavia no tiene imagen cargada, dibuja un placeholder
  * tramado con el nombre de la seccion en lugar de un hueco gris. Evita
@@ -31,6 +36,7 @@ export function FotoNota({
   formato = 'tapa',
   className,
   priority = false,
+  conVideo = false,
 }: FotoNotaProps) {
   return (
     <div
@@ -62,6 +68,15 @@ export function FotoNota({
             {nombreSeccion(seccion)}
           </span>
         </div>
+      )}
+
+      {conVideo && (
+        <span className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-tinta/90 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+          <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 fill-current" aria-hidden="true">
+            <path d="M2 1l9 5-9 5z" />
+          </svg>
+          Video
+        </span>
       )}
     </div>
   )

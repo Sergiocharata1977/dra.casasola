@@ -2,7 +2,7 @@ rules_version = '2';
 
 // Reglas de Storage de Revista No Pauta.
 //
-// Solo se guardan fotos de notas. Se leen publicamente porque se muestran
+// Se guardan fotos y videos de notas. Se leen publicamente porque se muestran
 // en la web a lectores sin sesion; escribir requiere estar logueado en el
 // panel de redaccion.
 
@@ -20,11 +20,28 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*');
     }
 
+    function esVideoValido() {
+      return request.resource.size > 0
+        && request.resource.size <= 100 * 1024 * 1024
+        && request.resource.contentType.matches('video/.*');
+    }
+
     // Fotos de las notas. Lectura publica: se muestran en la portada,
     // en las notas y en las previsualizaciones de WhatsApp y Facebook.
     match /news/{archivo=**} {
       allow read: if true;
       allow write: if esRedaccion() && esFotoValida();
+    }
+
+    // Videos de las notas. Van en una carpeta propia para poder pedirles
+    // otro tipo de archivo y otro tope de peso que a las fotos.
+    //
+    // 100 MB es un limite economico, no tecnico: Storage cobra por byte
+    // guardado y por byte descargado, asi que un video largo con muchas
+    // vistas es lo mas caro que puede tener este sitio.
+    match /news-video/{archivo=**} {
+      allow read: if true;
+      allow write: if esRedaccion() && esVideoValido();
     }
 
     // Todo lo demas queda cerrado.

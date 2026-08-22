@@ -116,8 +116,8 @@ export default function AdminDashboard() {
                     <CardContent className="pt-6">
                         <p className="font-medium">La revista todavia no tiene notas propias.</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Mientras tanto la web muestra contenido de muestra. En cuanto publiques
-                            la primera nota, la portada se arma sola con lo tuyo.
+                            La portada esta vacia hasta que salga la primera. En cuanto publiques
+                            una nota, la tapa se arma sola con lo tuyo.
                         </p>
                         <Link
                             href="/admin/news"

@@ -93,6 +93,20 @@ export default async function NotaPage({ params }: Props) {
     mainEntityOfPage: `${siteConfig.url}${hrefNota(nota)}`,
     articleSection: nombreSeccion(nota.seccion),
     ...(nota.imageUrl ? { image: [nota.imageUrl] } : {}),
+    // Google indexa el video aparte de la nota y lo muestra en la pestana
+    // Videos. Sin esto, un video propio no aparece en ninguna busqueda.
+    ...(nota.videoUrl
+      ? {
+          video: {
+            '@type': 'VideoObject',
+            name: nota.title,
+            description: nota.videoEpigrafe || nota.bajada || nota.summary || nota.title,
+            contentUrl: nota.videoUrl,
+            uploadDate: publicada,
+            ...(nota.imageUrl ? { thumbnailUrl: [nota.imageUrl] } : {}),
+          },
+        }
+      : {}),
   }
 
   return (

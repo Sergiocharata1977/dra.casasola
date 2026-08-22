@@ -20,6 +20,7 @@ export const siteConfig = {
 } as const;
 
 export type SeccionSlug =
+    | 'editorial'
     | 'politica'
     | 'economia'
     | 'sociedad'
@@ -79,6 +80,13 @@ export const secciones: Seccion[] = [
         slug: 'deportes',
         nombre: 'Deportes',
         descripcion: 'Competencia, clubes y protagonistas del deporte local.',
+        enNav: true,
+    },
+    {
+        slug: 'editorial',
+        nombre: 'Editorial',
+        descripcion:
+            'La posicion de la revista. A diferencia de Opinion, aca no habla un columnista: habla No Pauta.',
         enNav: true,
     },
     {

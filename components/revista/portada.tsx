@@ -19,24 +19,26 @@ import {
  * notas quedan visibles para buscadores y redes sociales.
  */
 export function Portada({ portada }: { portada: PortadaData }) {
-  const { apertura, breves, opinion, destacadas, ultimas, esDemo } = portada
+  const { apertura, breves, opinion, destacadas, ultimas } = portada
 
   return (
     <div className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6">
-      {esDemo && <AvisoDemo />}
-
       {/* ---- Cuerpo principal de la tapa: tres columnas ---- */}
       <div className="grid gap-12 lg:grid-cols-[220px_minmax(0,1fr)_270px] lg:gap-10">
         {/* Columna izquierda: breves */}
         <aside className="order-2 lg:order-1">
-          <TituloBloque>Apuntes</TituloBloque>
-          <div className="grid gap-4">
-            {breves.map((nota) => (
-              <NotaBreve key={nota.id} nota={nota} />
-            ))}
-          </div>
+          {breves.length > 0 && (
+            <>
+              <TituloBloque>Apuntes</TituloBloque>
+              <div className="grid gap-4">
+                {breves.map((nota) => (
+                  <NotaBreve key={nota.id} nota={nota} />
+                ))}
+              </div>
+            </>
+          )}
 
-          <div className="mt-8">
+          <div className={breves.length > 0 ? 'mt-8' : ''}>
             <TituloBloque>Secciones</TituloBloque>
             <div className="grid gap-px bg-filete">
               {secciones.map((s) => (
@@ -57,7 +59,13 @@ export function Portada({ portada }: { portada: PortadaData }) {
           {apertura ? (
             <NotaApertura nota={apertura} />
           ) : (
-            <p className="cuerpo-nota">Todavia no hay notas publicadas.</p>
+            <div className="border border-filete bg-papel-2 px-5 py-8">
+              <p className="volanta">Sin publicar</p>
+              <p className="mt-2 font-serif text-base leading-relaxed text-tinta-2">
+                Todavia no hay notas publicadas. La tapa se arma sola con la primera que salga
+                desde el panel de redaccion.
+              </p>
+            </div>
           )}
         </main>
 
@@ -116,24 +124,6 @@ export function Portada({ portada }: { portada: PortadaData }) {
           </div>
         </section>
       )}
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-
-function AvisoDemo() {
-  return (
-    <div className="mb-8 border-l-2 border-rojo bg-papel-2 px-4 py-3">
-      <p className="volanta">Portada de demostracion</p>
-      <p className="mt-1 font-serif text-sm text-tinta-2">
-        Todavia no hay notas publicadas, asi que se muestra contenido de muestra. Publica la
-        primera nota desde{' '}
-        <Link href="/admin/news" className="border-b border-rojo text-rojo">
-          el panel de redaccion
-        </Link>{' '}
-        y esta tapa se arma sola.
-      </p>
     </div>
   )
 }

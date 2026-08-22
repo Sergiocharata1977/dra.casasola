@@ -11,8 +11,6 @@ import { NotaLista } from '@/components/revista/nota-card'
 type ListadoNotasProps = {
   /** Notas ya resueltas en el servidor. Llegan renderizadas en el HTML. */
   notas: News[]
-  /** true cuando lo que se muestra es contenido de muestra. */
-  esDemo?: boolean
   /** Si se pasa, solo muestra notas de esa seccion. */
   seccion?: string
   /** Muestra el buscador de texto sobre el listado. */
@@ -32,7 +30,6 @@ const POR_PAGINA = 10
  */
 export function ListadoNotas({
   notas,
-  esDemo = false,
   seccion,
   conBuscador = false,
   conFiltros = false,
@@ -63,16 +60,6 @@ export function ListadoNotas({
 
   return (
     <div>
-      {esDemo && (
-        <p className="mb-6 border-l-2 border-rojo bg-papel-2 px-4 py-3 font-serif text-sm text-tinta-2">
-          Contenido de muestra. Publica notas desde{' '}
-          <Link href="/admin/news" className="border-b border-rojo text-rojo">
-            el panel de redaccion
-          </Link>{' '}
-          para reemplazarlo.
-        </p>
-      )}
-
       {conBuscador && (
         <div id="buscar" className="mb-6 flex items-center gap-2 border border-filete px-3 py-2.5">
           <Search className="h-4 w-4 shrink-0 text-tinta-3" aria-hidden="true" />

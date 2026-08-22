@@ -1,5 +1,4 @@
 import type { News } from './types';
-import { notasDemo } from './demo-content';
 
 /* ============================================================
    Helpers editoriales compartidos por portada, seccion y nota.
@@ -48,9 +47,21 @@ export function fechaDeTapa(fecha: Date = new Date()): string {
     });
 }
 
+/**
+ * Saca las marcas de formato del cuerpo para poder usarlo como texto corrido.
+ * El cuerpo admite "## subtitulo" y "- item de lista" (ver components/revista/
+ * cuerpo-nota.tsx); en un resumen esas marcas no deben aparecer.
+ */
+function sinMarcas(texto: string): string {
+    return texto
+        .split('\n')
+        .map((linea) => linea.trim().replace(/^##\s+/, '').replace(/^[-*]\s+/, ''))
+        .join(' ');
+}
+
 /** Texto de arrastre: bajada > summary > primeras lineas del cuerpo. */
 export function resumenDe(nota: News, largo = 180): string {
-    const base = nota.bajada || nota.summary || nota.content || '';
+    const base = nota.bajada || nota.summary || sinMarcas(nota.content || '');
     const limpio = base.replace(/\s+/g, ' ').trim();
     if (limpio.length <= largo) return limpio;
     return `${limpio.slice(0, largo).trimEnd()}...`;
@@ -70,13 +81,21 @@ export function minutosDeLectura(nota: News): number {
 export function generarSlug(texto: string): string {
     return texto
         .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '') // saca los acentos
+        .replace(/[\u0300-\u036f]/g, '') // saca los acentos
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .slice(0, 70);
 }
 
+/**
+ * Columna de opinion firmada.
+ *
+ * Ojo con la distincion: `opinion` son columnas de autor, cuya posicion NO
+ * compromete a la revista y por eso llevan el aviso de responsabilidad. La
+ * seccion `editorial` es otra cosa: ahi habla la revista, asi que no es
+ * opinion firmada y puede abrir la tapa como cualquier nota informativa.
+ */
 export function esColumnaDeOpinion(nota: News): boolean {
     return Boolean(nota.esOpinion) || nota.seccion === 'opinion';
 }
@@ -110,8 +129,6 @@ export type Portada = {
     destacadas: News[];
     /** Cierre de tapa: el resto, en orden cronologico. */
     ultimas: News[];
-    /** true cuando la portada se armo con contenido de muestra. */
-    esDemo: boolean;
 };
 
 /**
@@ -121,11 +138,12 @@ export type Portada = {
  * alcanza para llenar un bloque, completa con las notas mas recientes
  * que todavia no se usaron. Asi la tapa nunca queda con huecos aunque
  * el editor no haya clasificado todo.
+ *
+ * Si no hay nada publicado, la portada vuelve vacia: la revista muestra
+ * que no publico todavia en vez de inventar contenido.
  */
 export function armarPortada(notas: News[]): Portada {
-    const publicadas = notas.filter((n) => n.published !== false);
-    const esDemo = publicadas.length === 0;
-    const fuente = esDemo ? notasDemo : publicadas;
+    const fuente = notas.filter((n) => n.published !== false);
 
     const usadas = new Set<string>();
     const tomar = (lista: News[], cantidad: number): News[] => {
@@ -143,11 +161,16 @@ export function armarPortada(notas: News[]): Portada {
     const informativas = fuente.filter((n) => !esColumnaDeOpinion(n));
 
     // 1. Apertura: la marcada como tal; si no hay, la informativa mas reciente.
+    //    Si lo unico publicado son columnas, abre con una columna antes que
+    //    dejar la tapa vacia teniendo material.
     const marcadaApertura = ordenarPorJerarquia(
         informativas.filter((n) => n.jerarquia === 'apertura')
     );
     const apertura =
-        tomar(marcadaApertura, 1)[0] ?? tomar(ordenarPorFecha(informativas), 1)[0] ?? null;
+        tomar(marcadaApertura, 1)[0] ??
+        tomar(ordenarPorFecha(informativas), 1)[0] ??
+        tomar(ordenarPorJerarquia(opinables), 1)[0] ??
+        null;
 
     // 2. Opinion (columna derecha).
     const opinion = tomar(ordenarPorJerarquia(opinables), 4);
@@ -171,17 +194,14 @@ export function armarPortada(notas: News[]): Portada {
     // 5. El resto, para el cierre de tapa.
     const ultimas = ordenarPorFecha(fuente.filter((n) => !usadas.has(n.id))).slice(0, 6);
 
-    return { apertura, breves, opinion, destacadas, ultimas, esDemo };
+    return { apertura, breves, opinion, destacadas, ultimas };
 }
 
 /**
  * Notas para listados (/noticias y /secciones/[seccion]).
- * Cae al contenido de muestra con el mismo criterio que la portada.
+ * Si no hay nada publicado devuelve una lista vacia, y el listado muestra
+ * su propio estado vacio.
  */
-export function notasParaListado(notas: News[]): { items: News[]; esDemo: boolean } {
-    const publicadas = notas.filter((n) => n.published !== false);
-    if (publicadas.length === 0) {
-        return { items: ordenarPorFecha(notasDemo), esDemo: true };
-    }
-    return { items: ordenarPorFecha(publicadas), esDemo: false };
+export function notasParaListado(notas: News[]): News[] {
+    return ordenarPorFecha(notas.filter((n) => n.published !== false));
 }

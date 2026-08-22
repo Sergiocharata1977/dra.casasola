@@ -17,6 +17,7 @@ import { Loader2 } from 'lucide-react';
 import { NewsService } from '@/lib/services';
 import type { News } from '@/lib/types';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { VideoUpload } from '@/components/ui/video-upload';
 import { generarSlug } from '@/lib/portada';
 import { secciones } from '@/lib/site-config';
 
@@ -36,6 +37,8 @@ const VACIO = {
     imageUrl: '',
     epigrafe: '',
     creditoFoto: '',
+    videoUrl: '',
+    videoEpigrafe: '',
     author: '',
     autorCargo: '',
     seccion: 'politica',
@@ -75,6 +78,8 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
                 imageUrl: news.imageUrl || '',
                 epigrafe: news.epigrafe || '',
                 creditoFoto: news.creditoFoto || '',
+                videoUrl: news.videoUrl || '',
+                videoEpigrafe: news.videoEpigrafe || '',
                 author: news.author || '',
                 autorCargo: news.autorCargo || '',
                 seccion: news.seccion || 'politica',
@@ -128,9 +133,18 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
                 ['creditoFoto', formData.creditoFoto],
                 ['autorCargo', formData.autorCargo],
                 ['imageUrl', formData.imageUrl],
+                ['videoUrl', formData.videoUrl],
+                ['videoEpigrafe', formData.videoEpigrafe],
             ];
             for (const [clave, valor] of opcionales) {
-                if (valor && valor.trim()) datos[clave] = valor.trim();
+                if (valor && valor.trim()) {
+                    datos[clave] = valor.trim();
+                } else if (news) {
+                    // Al editar hay que escribir null explicito. updateDoc hace
+                    // merge: si el campo simplemente no viaja, Firestore conserva
+                    // el valor viejo y sacar una foto o un video no tiene efecto.
+                    datos[clave] = null;
+                }
             }
 
             // `summary` se mantiene sincronizado con la bajada: lo siguen
@@ -404,6 +418,31 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
                                 placeholder="Quien saco la foto"
                             />
                         </div>
+                    </div>
+
+                    {/* ---------------- Video ---------------- */}
+                    <Sub>Video</Sub>
+
+                    <p className="text-xs text-muted-foreground">
+                        Opcional. Si cargas un video, pasa a ser la pieza principal de la nota y la
+                        foto de arriba queda como caratula del reproductor.
+                    </p>
+
+                    <VideoUpload
+                        currentUrl={formData.videoUrl}
+                        onVideoUploaded={(url) => setFormData({ ...formData, videoUrl: url })}
+                    />
+
+                    <div className="space-y-2">
+                        <Label htmlFor="videoEpigrafe">Epigrafe del video</Label>
+                        <Input
+                            id="videoEpigrafe"
+                            value={formData.videoEpigrafe}
+                            onChange={(e) =>
+                                setFormData({ ...formData, videoEpigrafe: e.target.value })
+                            }
+                            placeholder="Que se ve en el video y quien lo filmo"
+                        />
                     </div>
 
                     {/* ---------------- Cuerpo ---------------- */}

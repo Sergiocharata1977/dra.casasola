@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 }
 
 export default async function ArchivoPage() {
-  const { items, esDemo } = notasParaListado(await getNotasPublicadas())
+  const notas = notasParaListado(await getNotasPublicadas())
 
   return (
     <div className="min-h-screen bg-papel">
@@ -33,7 +33,7 @@ export default async function ArchivoPage() {
         </header>
 
         <div className="mt-8">
-          <ListadoNotas notas={items} esDemo={esDemo} conBuscador conFiltros />
+          <ListadoNotas notas={notas} conBuscador conFiltros />
         </div>
       </div>
 

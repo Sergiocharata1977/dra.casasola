@@ -39,7 +39,7 @@ export default async function SeccionPage({ params }: Props) {
   const info = getSeccion(seccion)
   if (!info) notFound()
 
-  const { items, esDemo } = notasParaListado(await getNotasPublicadas())
+  const notas = notasParaListado(await getNotasPublicadas())
 
   return (
     <div className="min-h-screen bg-papel">
@@ -56,7 +56,7 @@ export default async function SeccionPage({ params }: Props) {
         </header>
 
         <div className="mt-8">
-          <ListadoNotas notas={items} esDemo={esDemo} seccion={info.slug} conFiltros />
+          <ListadoNotas notas={notas} seccion={info.slug} conFiltros />
         </div>
       </div>
 

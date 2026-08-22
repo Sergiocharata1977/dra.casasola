@@ -106,8 +106,8 @@ export async function getNotasPublicadas(): Promise<News[]> {
 
         return ordenarPorFecha(notas);
     } catch (error) {
-        // Si Firestore no responde, la pagina igual se arma con el contenido
-        // de muestra en lugar de romper el render entero.
+        // Si Firestore no responde, la pagina igual se arma vacia en lugar de
+        // romper el render entero.
         console.error('[notas] No se pudo leer Firestore:', error);
         return [];
     }
@@ -117,10 +117,7 @@ export async function getNotasPublicadas(): Promise<News[]> {
 export async function getNota(
     identificador: string
 ): Promise<{ nota: News | null; relacionadas: News[] }> {
-    const publicadas = await getNotasPublicadas();
-
-    // Si no hay nada publicado se usa el contenido de muestra, igual que la portada.
-    const fuente = publicadas.length > 0 ? publicadas : (await import('../demo-content')).notasDemo;
+    const fuente = await getNotasPublicadas();
 
     const nota = fuente.find((n) => n.slug === identificador || n.id === identificador) ?? null;
     if (!nota) return { nota: null, relacionadas: [] };

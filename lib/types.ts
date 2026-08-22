@@ -57,6 +57,15 @@ export interface News {
     esOpinion?: boolean;
     /** Minutos estimados de lectura. */
     tiempoLectura?: number;
+
+    /**
+     * Video de la nota, alojado en Firebase Storage (carpeta news-video/).
+     * Cuando esta cargado, el video reemplaza a la foto como pieza principal
+     * de la nota y la foto pasa a usarse como caratula del reproductor.
+     */
+    videoUrl?: string;
+    /** Epigrafe del video: que se ve y quien lo filmo. */
+    videoEpigrafe?: string;
 }
 
 export interface Event {
