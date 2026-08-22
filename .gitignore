@@ -35,3 +35,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sesion de los scripts de redaccion
+# Guarda un refresh token de Firebase Auth. El repositorio es publico:
+# si esto se sube, cualquiera puede escribir en la revista.
+.nopauta-sesion.json

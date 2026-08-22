@@ -137,6 +137,56 @@ usaban las paginas institucionales:
 - `## Subtitulo` para intertitulo
 - `- item` para vinieta
 
+### Publicar notas sin build ni deploy
+
+Este proyecto vive en un disco externo sin `node_modules`, asi que no se puede
+compilar ni levantar el dev server. Para que eso no impida publicar, las notas
+se cargan desde archivos con scripts que no tienen una sola dependencia: solo
+`node` y `fetch`.
+
+```
+npm run nota -- contenido/notas/mi-nota.md   publica o actualiza una nota
+npm run notas:publicar                       publica todos los .md de la carpeta
+npm run notas:ensayo                         muestra que haria, sin escribir
+npm run notas:listar                         que hay cargado y donde cae en la tapa
+npm run notas:bajar                          trae lo que se cargo desde el panel web
+```
+
+Una nota es un `.md` con cabecera de metadatos y cuerpo. Ver
+`contenido/notas/README.md` y `contenido/notas/_PLANTILLA.md`.
+
+Decisiones que conviene conocer antes de tocar esto:
+
+- **Se busca por `slug`, no por id.** Si existe una nota con ese slug se
+  actualiza; si no, se crea. Correr el comando dos veces no duplica, y el
+  archivo del disco queda siendo la version buena.
+- **Cambiar el titulo cambia la direccion web.** El slug se deriva del titulo
+  cuando no se fija a mano. Si una nota ya salio, conviene fijar `slug:` para
+  no romper enlaces ya compartidos.
+- **La fecha de publicacion no se pisa.** Se fija la primera vez que la nota
+  sale; una correccion posterior no la vuelve a poner arriba de todo.
+- **Se valida todo el lote antes de escribir el primer documento.** Si el
+  tercer archivo tiene la seccion mal, no queda medio lote publicado.
+- **Los opcionales viajan como `null` cuando estan vacios.** `updateDoc` y el
+  PATCH de Firestore hacen merge: si el campo no viaja, el valor viejo queda.
+  Es el mismo bug que tenia el formulario del panel al sacar una foto.
+- **La sesion se guarda como refresh token en `.nopauta-sesion.json`**, no
+  como la clave. Es revocable desde Firebase Console (Authentication > el
+  usuario > cerrar sesiones) y esta en `.gitignore`. El repositorio es
+  publico: si ese archivo se sube, cualquiera puede escribir en la revista.
+- **No hace falta redeployar.** Las paginas usan ISR con `revalidate = 60`,
+  asi que la nota aparece sola dentro del minuto.
+- `scripts/lib/config.mjs` repite a mano el projectId, la apiKey y la lista de
+  secciones desde `lib/firebase-config.ts` y `lib/site-config.ts`, porque esos
+  son TypeScript y estos scripts corren sin compilar. Si cambia el proyecto de
+  Firebase o se agrega una seccion, hay que tocar los dos lugares.
+
+Automatizacion mas alla de esto (publicar al hacer push con una GitHub Action,
+o notas programadas con cron) quedo descartada por ahora: la Action obliga a
+guardar credenciales del panel como secret de un repositorio publico, y el
+cron necesita salir del plan Hobby de Vercel. Se reevalua cuando haya mas de
+una persona cargando contenido.
+
 ### Bug arreglado de paso
 
 En el formulario de notas, sacar la foto de una nota ya guardada no tenia
@@ -146,19 +196,19 @@ editar se escribe `null` explicito.
 
 ### Pendiente inmediato
 
-1. **Correr el script que corrige la nota en Firestore.** El codigo ya soporta
-   la seccion `editorial`, pero el documento sigue cargado como `opinion`:
+1. **Publicar el editorial ya corregido.** El codigo soporta la seccion
+   `editorial`, pero el documento en Firestore sigue cargado como `opinion`.
+   La correccion esta escrita en `contenido/notas/editorial-presentacion.md`:
 
    ```
-   node scripts/corregir-editorial.mjs
+   npm run nota -- contenido/notas/editorial-presentacion.md
    ```
 
-   Pide mail y clave de un usuario del panel, porque las reglas exigen sesion
-   para escribir en `news`. Deja la nota en `seccion: editorial`,
-   `jerarquia: apertura`, agrega los intertitulos y las vinietas al cuerpo y
-   corrige la firma a "Roberto Garcia" con tilde. El texto del autor no se
-   toca: el script valida que, sacando las marcas de formato, el cuerpo sea
-   identico al original y aborta si cambio.
+   Pide una vez el mail y la clave de un usuario del panel. Deja la nota en
+   `seccion: editorial`, `jerarquia: apertura`, con los intertitulos y las
+   vinietas marcados y la firma con tilde. El texto del autor no se toca: el
+   cuerpo se genero validando que, sacando las marcas de formato, fuera
+   identico al original.
 
 2. **Desplegar las reglas de Storage**, o la subida de video va a fallar con
    permiso denegado:

@@ -6,7 +6,12 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "nota": "node scripts/publicar-nota.mjs",
+    "notas:publicar": "node scripts/publicar-nota.mjs --todas",
+    "notas:ensayo": "node scripts/publicar-nota.mjs --todas --ensayo",
+    "notas:listar": "node scripts/listar-notas.mjs",
+    "notas:bajar": "node scripts/bajar-notas.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

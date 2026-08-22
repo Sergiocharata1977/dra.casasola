@@ -1,3 +1,19 @@
+---
+titulo: Pensamiento crítico sin compromisos políticos: nace Revista No Pauta
+slug: pensamiento-critico-sin-compromisos-politicos-nace-revista-no-pauta
+volanta: Editorial de apertura
+bajada: Una mirada independiente para entender Charata y el sudoeste chaqueño.
+seccion: editorial
+jerarquia: apertura
+orden: 1
+autor: Roberto García
+cargo: Director
+tags: editorial, charata, sudoeste chaqueño
+foto: https://firebasestorage.googleapis.com/v0/b/revistanopauta.firebasestorage.app/o/news%2F1787423794729-Screenshot_9.png?alt=media&token=b0318337-ae42-445a-8540-74e597df63e7
+opinion: no
+publicada: si
+---
+
 Revista No Pauta nace con una idea sencilla pero exigente: analizar la realidad de Charata y de la región sudoeste del Chaco desde una perspectiva independiente, sin compromisos políticos, partidarios ni institucionales, poniendo en el centro aquello que verdaderamente beneficia al ciudadano.
 
 No buscamos ser un medio opositor ni oficialista. Tampoco pretendemos convertirnos en voceros de gobiernos, partidos, empresas o sectores determinados. Nuestro objetivo es otro: observar, analizar, comparar, preguntar y explicar. Queremos abordar los problemas y oportunidades de nuestra región con una mirada crítica, técnica y accesible, aportando información que permita a cada vecino formar su propia opinión.
