@@ -1,6 +1,6 @@
 import type { News } from '../types';
 import { firebaseConfig } from '../firebase-config';
-import { ordenarPorFecha } from '../portada';
+import { ordenarPorFecha, yaSalio } from '../portada';
 
 /**
  * Lectura de notas DESDE EL SERVIDOR.
@@ -102,7 +102,15 @@ export async function getNotasPublicadas(): Promise<News[]> {
         }
 
         const datos = (await respuesta.json()) as { documents?: DocumentoFirestore[] };
-        const notas = (datos.documents ?? []).map(aNota).filter((n) => n.published !== false);
+        // Punto unico por donde pasan portada, /noticias, /secciones,
+        // /noticias/[id] y el sitemap: si una nota se cuela aca, se cuela en
+        // todo el sitio publico. Por eso el filtro de fecha vive en este
+        // lugar y no repartido por cada pagina. `published !== false` se
+        // mantiene permisivo a proposito: la nota sin el campo cuenta como
+        // publicada, igual que antes.
+        const notas = (datos.documents ?? [])
+            .map(aNota)
+            .filter((n) => n.published !== false && yaSalio(n));
 
         return ordenarPorFecha(notas);
     } catch (error) {

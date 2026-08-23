@@ -42,6 +42,42 @@ El cuerpo entiende dos marcas:
 - `## Subtitulo` para un intertitulo
 - `- item` para una vinieta
 
+## Programar una nota
+
+Una nota puede quedar escrita hoy y salir sola manana a la manana. Se agrega
+el campo `publicar` a la cabecera, junto con `publicada: si`:
+
+```
+publicada: si
+publicar: 2026-08-25 08:00
+```
+
+Tambien vale `publicar: 2026-08-25` a secas: se toma ese dia a las 08:00.
+La hora es siempre hora de Charata, la corra quien la corra.
+
+**No hace falta que corra nada a esa hora.** No hay ningun proceso esperando:
+la nota se guarda ya autorizada y el sitio la muestra recien cuando la fecha
+llego. Sale dentro del minuto siguiente a su hora si alguien entra al sitio,
+igual que cualquier otra publicacion.
+
+`publicar` sin `publicada: si` es un error y el comando lo rechaza: programar
+una nota es autorizarla con fecha. Si la queres dejar de borrador, saca el
+`publicar`.
+
+Para adelantar o correr una programacion se cambia la fecha en el archivo y se
+vuelve a correr el comando. La fecha del archivo manda: es la unica cosa que
+pisa la fecha que la nota ya tenia.
+
+`npm run notas:listar` muestra las programadas aparte, con la hora a la que
+salen.
+
+### Programar no es embargar
+
+La nota programada queda guardada en la base desde que la subis, y la base es
+de lectura publica: quien sepa buscar la puede leer antes de la hora. Sirve
+para organizar la salida, no para guardar un secreto. Si el contenido no puede
+verse antes de tiempo, dejala en `publicada: no` y publicala a mano.
+
 ## Como funciona por dentro
 
 - El comando busca en Firestore una nota con el mismo `slug`. Si existe la
@@ -50,7 +86,8 @@ El cuerpo entiende dos marcas:
   por lo tanto la direccion web: si la nota ya salio y no queres romper el
   enlace, fija el `slug` a mano.
 - La fecha de publicacion se fija la primera vez que sale y no se pisa. Una
-  correccion no vuelve a poner la nota arriba de todo.
+  correccion no vuelve a poner la nota arriba de todo. La unica excepcion es
+  el campo `publicar`: si esta, esa fecha manda.
 - Se validan todos los archivos antes de escribir el primero. Si el tercero
   tiene la seccion mal, no queda medio lote publicado.
 - `publicada: no` deja la nota de borrador. Se puede subir asi y publicarla

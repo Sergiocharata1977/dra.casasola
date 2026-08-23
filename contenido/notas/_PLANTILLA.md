@@ -51,6 +51,17 @@ videoEpigrafe:
 # publicada: si -> sale en la web.
 # publicada: no -> queda de borrador, no se ve.
 publicada: no
+
+# publicar: fecha y hora en que sale sola. Solo tiene efecto con
+# "publicada: si". Hora de Charata.
+#   publicar: 2026-08-25 08:00
+#   publicar: 2026-08-25          -> ese dia a las 08:00
+# Si lo dejas vacio, sale en el momento en que corras el comando.
+#
+# Ojo: la nota programada queda guardada en la base desde que la subis y la
+# base es de lectura publica. No sirve para embargar algo sensible; para eso
+# dejala en borrador hasta el momento de publicar.
+publicar:
 ---
 
 Aca va el primer parrafo. Separa los parrafos con una linea en blanco.

@@ -21,6 +21,12 @@ export type JerarquiaPortada =
     | 'breve'       // columna lateral de titulos
     | 'normal';     // solo aparece en su seccion y en /noticias
 
+/**
+ * Estado real de una nota, derivado de `published` + `publishedAt`.
+ * No se guarda en Firestore: se calcula. Asi no puede quedar desincronizado.
+ */
+export type EstadoNota = 'borrador' | 'programada' | 'publicada';
+
 export interface News {
     id: string;
     title: string;
@@ -29,6 +35,12 @@ export interface News {
     imageUrl?: string;
     author: string;
     published: boolean;
+    /**
+     * Momento en que la nota sale al aire. Puede estar en el futuro: en ese
+     * caso la nota queda programada y no se muestra en ningun lado hasta esa
+     * hora. Una nota sin este campo se considera ya salida: son las notas
+     * viejas, cargadas antes de que existiera la programacion.
+     */
     publishedAt?: string;
     createdAt: string;
     updatedAt: string;

@@ -7,7 +7,38 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Edit, Trash2, Loader2, LayoutGrid, List, Eye } from 'lucide-react';
 import { NewsService } from '@/lib/services';
 import type { News } from '@/lib/types';
+import { estadoDeNota, textoDeProgramacion } from '@/lib/portada';
 import { NewsFormDialog } from '@/components/admin/NewsFormDialog';
+
+/**
+ * Cartelito de estado de una nota.
+ *
+ * El estado no se guarda: sale de `published` + `publishedAt` via
+ * estadoDeNota(). Una nota programada esta autorizada pero todavia no salio,
+ * asi que no puede mostrarse como "Publicado".
+ *
+ * `className` es para las clases de posicionamiento que cada vista necesita
+ * (la lista lo pone dentro de un flex y precisa `flex-shrink-0`).
+ */
+function EstadoNotaBadge({ nota, className = '' }: { nota: News; className?: string }) {
+    const estado = estadoDeNota(nota);
+    const estilos = {
+        publicada: 'bg-green-100 text-green-800',
+        programada: 'bg-amber-100 text-amber-800',
+        borrador: 'bg-gray-100 text-gray-800',
+    } as const;
+    const textos = {
+        publicada: 'Publicado',
+        programada: 'Programada',
+        borrador: 'Borrador',
+    } as const;
+
+    return (
+        <span className={`text-xs px-2 py-0.5 rounded-full ${className} ${estilos[estado]}`}>
+            {textos[estado]}
+        </span>
+    );
+}
 
 export default function NewsPage() {
     const [news, setNews] = useState<News[]>([]);
@@ -85,10 +116,23 @@ export default function NewsPage() {
         );
     }
 
+    // Aviso solo cuando hay algo que avisar: con cero programadas no se
+    // muestra nada, para no agregar ruido al encabezado.
+    const programadas = news.filter((item) => estadoDeNota(item) === 'programada');
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-gray-900">Gestión de Noticias</h1>
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Gestión de Noticias</h1>
+                    {programadas.length > 0 && (
+                        <p className="mt-1 text-sm text-amber-700">
+                            {programadas.length === 1
+                                ? '1 nota esperando su hora'
+                                : `${programadas.length} notas esperando su hora`}
+                        </p>
+                    )}
+                </div>
                 <div className="flex gap-2">
                     {/* View Toggle */}
                     <div className="flex bg-gray-100 rounded-lg p-1">
@@ -140,11 +184,14 @@ export default function NewsPage() {
                                         <span className="text-xs text-gray-500">
                                             {new Date(item.createdAt).toLocaleDateString('es-ES')}
                                         </span>
-                                        <span className={`text-xs px-2 py-0.5 rounded-full ${item.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                            {item.published ? 'Publicado' : 'Borrador'}
-                                        </span>
+                                        <EstadoNotaBadge nota={item} />
                                     </div>
                                     <h3 className="font-bold text-lg mb-2 text-gray-900 leading-tight line-clamp-2">{item.title}</h3>
+                                    {estadoDeNota(item) === 'programada' && (
+                                        <p className="text-xs text-amber-700 mb-2 -mt-1">
+                                            {textoDeProgramacion(item)}
+                                        </p>
+                                    )}
                                     <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                                         {item.summary || item.content.substring(0, 100) + '...'}
                                     </p>
@@ -187,10 +234,13 @@ export default function NewsPage() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <h3 className="font-bold text-gray-900 truncate">{item.title}</h3>
-                                                <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${item.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                    {item.published ? 'Publicado' : 'Borrador'}
-                                                </span>
+                                                <EstadoNotaBadge nota={item} className="flex-shrink-0" />
                                             </div>
+                                            {estadoDeNota(item) === 'programada' && (
+                                                <p className="text-xs text-amber-700 mb-1">
+                                                    {textoDeProgramacion(item)}
+                                                </p>
+                                            )}
                                             <p className="text-sm text-gray-600 truncate">
                                                 {item.summary || item.content.substring(0, 100)}
                                             </p>

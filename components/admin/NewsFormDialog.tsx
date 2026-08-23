@@ -18,7 +18,7 @@ import { NewsService } from '@/lib/services';
 import type { News } from '@/lib/types';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { VideoUpload } from '@/components/ui/video-upload';
-import { generarSlug } from '@/lib/portada';
+import { aIsoArgentina, deIsoAInputLocal, estadoDeNota, generarSlug } from '@/lib/portada';
 import { secciones } from '@/lib/site-config';
 
 interface NewsFormDialogProps {
@@ -47,7 +47,8 @@ const VACIO = {
     ordenPortada: '',
     tiempoLectura: '',
     tags: '',
-    published: false,
+    estado: 'borrador', // 'borrador' | 'ahora' | 'programada'
+    fechaSalida: '', // formato del input datetime-local
 };
 
 /** Estilo compartido de los <select> nativos, para que peguen con los Input. */
@@ -69,6 +70,11 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
 
     useEffect(() => {
         if (news) {
+            // El formulario no guarda `published` suelto: trabaja con un estado
+            // de tres valores. Una nota ya publicada entra como 'ahora' porque
+            // en el panel las dos cosas se editan igual; la diferencia entre
+            // 'ahora' y 'publicada' solo importa al guardar.
+            const estadoReal = estadoDeNota(news);
             setFormData({
                 title: news.title || '',
                 volanta: news.volanta || '',
@@ -88,7 +94,8 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
                 ordenPortada: news.ordenPortada != null ? String(news.ordenPortada) : '',
                 tiempoLectura: news.tiempoLectura != null ? String(news.tiempoLectura) : '',
                 tags: news.tags?.join(', ') || '',
-                published: Boolean(news.published),
+                estado: estadoReal === 'publicada' ? 'ahora' : estadoReal,
+                fechaSalida: deIsoAInputLocal(news.publishedAt),
             });
             setSlugTocado(Boolean(news.slug));
         } else {
@@ -108,6 +115,20 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Una nota programada sin fecha valida no se puede guardar: quedaria
+        // publicada al instante sin que nadie lo haya pedido. Se valida antes
+        // de prender el loading para no dejar el boton bloqueado.
+        let programada: string | null = null;
+        if (formData.estado === 'programada') {
+            programada = aIsoArgentina(formData.fechaSalida);
+            if (!programada) {
+                console.error('Fecha de programacion invalida:', formData.fechaSalida);
+                alert('Elegi una fecha y hora validas para programar la nota.');
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
@@ -120,7 +141,8 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
                 seccion: formData.seccion,
                 jerarquia: formData.jerarquia,
                 esOpinion: formData.esOpinion,
-                published: formData.published,
+                // `published` y `publishedAt` los fija el bloque de estado, mas
+                // abajo, para que los tres casos queden juntos y a la vista.
             };
 
             const slug = (formData.slug || generarSlug(formData.title)).trim();
@@ -160,12 +182,35 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
             const tags = formData.tags.split(',').map((t) => t.trim()).filter(Boolean);
             if (tags.length > 0) datos.tags = tags;
 
-            // La fecha de publicacion se fija la primera vez que se publica y
-            // no se pisa en cada guardado posterior.
-            if (formData.published) {
-                datos.publishedAt = news?.publishedAt || new Date().toISOString();
-            } else {
+            // Que se guarda segun el estado elegido:
+            //   borrador   -> published false y sin fecha
+            //   ahora      -> published true; se respeta la fecha que ya tenia
+            //                 para que corregir una nota vieja no la suba de
+            //                 nuevo a la tapa
+            //   programada -> published true con la fecha elegida, leida como
+            //                 hora de Argentina
+            if (formData.estado === 'borrador') {
+                datos.published = false;
                 datos.publishedAt = null;
+            } else if (formData.estado === 'ahora') {
+                // Caso borde: si la nota venia programada, la fecha que tiene
+                // guardada es futura. Respetarla dejaria la nota "publicada"
+                // pero invisible hasta esa hora, que es exactamente lo
+                // contrario de lo que pidio el editor al elegir "publicar
+                // ahora". Por eso solo se conserva la fecha vieja cuando ya
+                // paso; si es futura se pisa con el instante actual.
+                const ahora = new Date();
+                const anteriorIso = news?.publishedAt || '';
+                const anterior = anteriorIso ? new Date(anteriorIso) : null;
+                const sirve =
+                    anterior !== null &&
+                    !Number.isNaN(anterior.getTime()) &&
+                    anterior.getTime() <= ahora.getTime();
+                datos.published = true;
+                datos.publishedAt = sirve ? anteriorIso : ahora.toISOString();
+            } else {
+                datos.published = true;
+                datos.publishedAt = programada;
             }
 
             if (news) {
@@ -466,22 +511,83 @@ export function NewsFormDialog({ open, onOpenChange, news, onSuccess }: NewsForm
                     {/* ---------------- Estado ---------------- */}
                     <Sub>Estado</Sub>
 
-                    <label className="flex cursor-pointer items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={formData.published}
-                            onChange={(e) =>
-                                setFormData({ ...formData, published: e.target.checked })
-                            }
-                            className="h-4 w-4 rounded border-gray-300"
-                        />
-                        <span className="text-sm">
-                            Publicada
-                            <span className="ml-1 text-muted-foreground">
-                                (si esta destildada queda como borrador, no se ve en la web)
+                    <div className="space-y-2">
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="radio"
+                                name="estado"
+                                value="borrador"
+                                checked={formData.estado === 'borrador'}
+                                onChange={() => setFormData({ ...formData, estado: 'borrador' })}
+                                className="h-4 w-4 border-gray-300"
+                            />
+                            <span className="text-sm">
+                                Borrador
+                                <span className="ml-1 text-muted-foreground">
+                                    — no se ve en la web
+                                </span>
                             </span>
-                        </span>
-                    </label>
+                        </label>
+
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="radio"
+                                name="estado"
+                                value="ahora"
+                                checked={formData.estado === 'ahora'}
+                                onChange={() => setFormData({ ...formData, estado: 'ahora' })}
+                                className="h-4 w-4 border-gray-300"
+                            />
+                            <span className="text-sm">
+                                Publicar ahora
+                                <span className="ml-1 text-muted-foreground">
+                                    — sale apenas guardes
+                                </span>
+                            </span>
+                        </label>
+
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="radio"
+                                name="estado"
+                                value="programada"
+                                checked={formData.estado === 'programada'}
+                                onChange={() => setFormData({ ...formData, estado: 'programada' })}
+                                className="h-4 w-4 border-gray-300"
+                            />
+                            <span className="text-sm">
+                                Programar
+                                <span className="ml-1 text-muted-foreground">
+                                    — sale sola el día y la hora que elijas
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    {formData.estado === 'programada' && (
+                        <div className="space-y-2 pl-6">
+                            <Label htmlFor="fechaSalida">Fecha y hora de salida</Label>
+                            <input
+                                id="fechaSalida"
+                                type="datetime-local"
+                                className={CLASE_SELECT}
+                                value={formData.fechaSalida}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, fechaSalida: e.target.value })
+                                }
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Hora de Charata. La nota aparece dentro del minuto siguiente a esa
+                                hora.
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                La nota queda guardada desde que la creás y la base es de lectura
+                                pública: programar sirve para ordenar el calendario, no para
+                                embargar. Si el tema es sensible, dejala en borrador hasta el
+                                momento de publicarla.
+                            </p>
+                        </div>
+                    )}
 
                     <DialogFooter>
                         <Button

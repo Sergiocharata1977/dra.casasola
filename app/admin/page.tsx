@@ -3,10 +3,17 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, FileText, Newspaper, PenLine, Star } from 'lucide-react';
+import { AlertTriangle, CalendarClock, FileText, Newspaper, PenLine, Star } from 'lucide-react';
 import { NewsService } from '@/lib/services';
 import type { News } from '@/lib/types';
-import { armarPortada, fechaCorta, hrefNota, ordenarPorFecha } from '@/lib/portada';
+import {
+    armarPortada,
+    estadoDeNota,
+    fechaCorta,
+    hrefNota,
+    ordenarPorFecha,
+    textoDeProgramacion,
+} from '@/lib/portada';
 import { nombreSeccion, secciones } from '@/lib/site-config';
 
 /**
@@ -41,8 +48,8 @@ export default function AdminDashboard() {
         return (
             <div className="space-y-6">
                 <h1 className="font-serif text-3xl font-bold">Redaccion</h1>
-                <div className="grid animate-pulse grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {[0, 1, 2, 3].map((i) => (
+                <div className="grid animate-pulse grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-5">
+                    {[0, 1, 2, 3, 4].map((i) => (
                         <div key={i} className="h-28 rounded-lg border bg-muted/40" />
                     ))}
                 </div>
@@ -50,16 +57,37 @@ export default function AdminDashboard() {
         );
     }
 
-    const publicadas = notas.filter((n) => n.published);
-    const borradores = notas.filter((n) => !n.published);
+    // Una nota programada esta autorizada pero todavia no salio: no cuenta
+    // como publicada ni ocupa lugar en la tapa.
+    const publicadas = notas.filter((n) => estadoDeNota(n) === 'publicada');
+    const programadas = notas.filter((n) => estadoDeNota(n) === 'programada');
+    const borradores = notas.filter((n) => estadoDeNota(n) === 'borrador');
+
     const portada = armarPortada(publicadas);
-    const sinSeccion = publicadas.filter((n) => !n.seccion);
-    const sinFoto = publicadas.filter((n) => !n.imageUrl);
+
+    // La proxima en salir. getAll() ordena por createdAt, que no dice nada
+    // sobre el orden de salida, asi que la cola se ordena por publishedAt.
+    const momentoDeSalida = (n: News) => (n.publishedAt ? new Date(n.publishedAt).getTime() : 0);
+    const colaProgramadas = [...programadas].sort(
+        (a, b) => momentoDeSalida(a) - momentoDeSalida(b)
+    );
+
+    // La ultima publicada es la de fecha de salida mas reciente, no la ultima
+    // creada: son cosas distintas desde que existe la programacion.
+    const ultimaPublicada = ordenarPorFecha(publicadas)[0];
+
+    // Los pendientes se miran sobre todo lo que ya esta autorizado a salir:
+    // una nota programada sin foto conviene corregirla ANTES de que salga,
+    // no cuando ya esta en la web.
+    const autorizadas = [...publicadas, ...programadas];
+    const sinSeccion = autorizadas.filter((n) => !n.seccion);
+    const sinFoto = autorizadas.filter((n) => !n.imageUrl);
 
     const ultimas = ordenarPorFecha(notas).slice(0, 6);
 
     // Cuantas notas publicadas tiene cada seccion. Sirve para ver que area
-    // esta quedando sin cobertura.
+    // esta quedando sin cobertura. Cuenta solo lo que ya salio: es cobertura
+    // real de la revista, no cobertura prometida.
     const porSeccion = secciones.map((s) => ({
         ...s,
         cantidad: publicadas.filter((n) => n.seccion === s.slug).length,
@@ -78,7 +106,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* ---- Numeros reales ---- */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-5">
                 <Indicador
                     titulo="Publicadas"
                     icono={<Newspaper className="h-4 w-4 text-accent" />}
@@ -86,9 +114,19 @@ export default function AdminDashboard() {
                     pie={
                         publicadas.length > 0
                             ? `Ultima: ${fechaCorta(
-                                  publicadas[0]?.publishedAt || publicadas[0]?.createdAt
+                                  ultimaPublicada?.publishedAt || ultimaPublicada?.createdAt
                               )}`
                             : 'Todavia no publicaste ninguna'
+                    }
+                />
+                <Indicador
+                    titulo="Programadas"
+                    icono={<CalendarClock className="h-4 w-4 text-accent" />}
+                    valor={programadas.length}
+                    pie={
+                        colaProgramadas.length > 0
+                            ? `Proxima: ${textoDeProgramacion(colaProgramadas[0])}`
+                            : 'No hay notas esperando'
                     }
                 />
                 <Indicador
@@ -107,11 +145,13 @@ export default function AdminDashboard() {
                     titulo="Para revisar"
                     icono={<AlertTriangle className="h-4 w-4 text-accent" />}
                     valor={sinSeccion.length + sinFoto.length}
-                    pie="Notas sin seccion o sin foto"
+                    pie="Al aire o programadas, sin seccion o sin foto"
                 />
             </div>
 
-            {publicadas.length === 0 && (
+            {/* Si ya hay algo programado la tapa esta por llenarse sola: no
+                corresponde el cartel de "todavia no hay nada". */}
+            {publicadas.length === 0 && programadas.length === 0 && (
                 <Card className="border-accent/40 bg-accent/5">
                     <CardContent className="pt-6">
                         <p className="font-medium">La revista todavia no tiene notas propias.</p>
@@ -140,36 +180,48 @@ export default function AdminDashboard() {
                             <p className="text-sm text-muted-foreground">Sin notas cargadas.</p>
                         ) : (
                             <ul className="space-y-3">
-                                {ultimas.map((n) => (
-                                    <li key={n.id} className="flex items-start gap-3">
-                                        <span
-                                            className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                                                n.published ? 'bg-emerald-500' : 'bg-amber-500'
-                                            }`}
-                                            aria-hidden="true"
-                                        />
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-medium">
-                                                {n.title}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {n.published ? 'Publicada' : 'Borrador'} ·{' '}
-                                                {nombreSeccion(n.seccion)} ·{' '}
-                                                {fechaCorta(n.updatedAt || n.createdAt)}
-                                            </p>
-                                        </div>
-                                        {n.published && (
-                                            <a
-                                                href={hrefNota(n)}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="ml-auto shrink-0 text-xs text-accent hover:underline"
-                                            >
-                                                Ver
-                                            </a>
-                                        )}
-                                    </li>
-                                ))}
+                                {ultimas.map((n) => {
+                                    const estado = estadoDeNota(n);
+                                    return (
+                                        <li key={n.id} className="flex items-start gap-3">
+                                            <span
+                                                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                                                    estado === 'publicada'
+                                                        ? 'bg-emerald-500'
+                                                        : estado === 'programada'
+                                                          ? 'bg-amber-500'
+                                                          : 'bg-muted-foreground/40'
+                                                }`}
+                                                aria-hidden="true"
+                                            />
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-medium">
+                                                    {n.title}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {estado === 'publicada'
+                                                        ? 'Publicada'
+                                                        : estado === 'programada'
+                                                          ? textoDeProgramacion(n)
+                                                          : 'Borrador'}{' '}
+                                                    · {nombreSeccion(n.seccion)} ·{' '}
+                                                    {fechaCorta(n.updatedAt || n.createdAt)}
+                                                </p>
+                                            </div>
+                                            {/* El link publico solo existe si la nota ya salio. */}
+                                            {estado === 'publicada' && (
+                                                <a
+                                                    href={hrefNota(n)}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="ml-auto shrink-0 text-xs text-accent hover:underline"
+                                                >
+                                                    Ver
+                                                </a>
+                                            )}
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         )}
                     </CardContent>
@@ -219,14 +271,14 @@ export default function AdminDashboard() {
                     <CardContent className="space-y-1 text-sm text-muted-foreground">
                         {sinSeccion.length > 0 && (
                             <p>
-                                {sinSeccion.length} nota(s) publicadas sin seccion asignada: no
-                                aparecen en ninguna portada de seccion.
+                                {sinSeccion.length} nota(s) publicadas o programadas sin seccion
+                                asignada: no aparecen en ninguna portada de seccion.
                             </p>
                         )}
                         {sinFoto.length > 0 && (
                             <p>
-                                {sinFoto.length} nota(s) publicadas sin foto: al compartirlas en
-                                WhatsApp salen sin imagen.
+                                {sinFoto.length} nota(s) publicadas o programadas sin foto: al
+                                compartirlas en WhatsApp salen sin imagen.
                             </p>
                         )}
                     </CardContent>

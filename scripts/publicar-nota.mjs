@@ -23,7 +23,7 @@ import { basename, join, resolve } from 'node:path';
 
 import { CARPETA_NOTAS, SITIO } from './lib/config.mjs';
 import { actualizarNota, crearNota, listarNotas } from './lib/firestore.mjs';
-import { aDatosDeNota, parsearArchivo } from './lib/nota.mjs';
+import { aDatosDeNota, esFutura, fechaLegible, parsearArchivo } from './lib/nota.mjs';
 import { obtenerToken } from './lib/sesion.mjs';
 
 const args = process.argv.slice(2);
@@ -66,7 +66,15 @@ if (ensayo) {
         console.log((previa ? '[actualiza] ' : '[crea]      ') + nombre);
         console.log('   titulo   : ' + datos.title);
         console.log('   seccion  : ' + datos.seccion + '  jerarquia: ' + datos.jerarquia);
-        console.log('   estado   : ' + (datos.published ? 'publicada' : 'borrador'));
+        // Sin fecha explicita ni fecha previa sale ahora mismo, asi que ese
+        // caso no es "programada": es "publicada".
+        const salida = datos.publishedAt || previa?.publishedAt || null;
+        const estado = !datos.published
+            ? 'borrador'
+            : esFutura(salida)
+              ? 'programada -> sale el ' + fechaLegible(salida)
+              : 'publicada';
+        console.log('   estado   : ' + estado);
         console.log('   url      : ' + SITIO + '/noticias/' + datos.slug);
         console.log('');
     }
@@ -81,7 +89,13 @@ for (const { nombre, datos } of preparadas) {
 
     // La fecha de publicacion se fija la primera vez que sale y no se pisa
     // despues: una correccion no vuelve a poner la nota arriba de todo.
-    const publishedAt = datos.published ? previa?.publishedAt || ahora : null;
+    //
+    // Prioridad: lo que dice el archivo > lo que ya tenia > ahora.
+    // La fecha explicita gana a proposito: es como se corrige o se adelanta
+    // una programacion volviendo a correr el comando.
+    const publishedAt = datos.published
+        ? (datos.publishedAt || previa?.publishedAt || ahora)
+        : null;
 
     if (previa) {
         await actualizarNota(token, previa.id, { ...datos, publishedAt, updatedAt: ahora });

@@ -42,3 +42,13 @@ export const SECCIONES = [
 ];
 
 export const JERARQUIAS = ['apertura', 'destacada', 'breve', 'normal'];
+
+/**
+ * Zona horaria de la revista, fija. Espejo de OFFSET_ARGENTINA en
+ * lib/portada.ts: si cambia alla, cambia aca.
+ *
+ * Es un offset a mano y no la zona de la maquina a proposito: la hora que
+ * escribe el editor tiene que significar lo mismo la corra quien la corra.
+ * Argentina no mueve el reloj desde 2009, asi que el -03:00 fijo es seguro.
+ */
+export const OFFSET_ARGENTINA = '-03:00';
