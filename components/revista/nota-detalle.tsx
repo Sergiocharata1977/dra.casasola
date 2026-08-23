@@ -7,6 +7,7 @@ import { CuerpoNota } from '@/components/revista/cuerpo-nota'
 import { FotoNota } from '@/components/revista/foto-nota'
 import { VideoNota } from '@/components/revista/video-nota'
 import { NotaDestacada, TituloBloque } from '@/components/revista/nota-card'
+import { MedidorLectura } from '@/components/revista/medidor-lectura'
 
 /**
  * Pagina de nota.
@@ -119,6 +120,9 @@ export function NotaDetalle({
             <p>{nota.summary}</p>
           </div>
         )}
+
+        {/* Fin del texto: aca se mide la lectura completa, no al pie de la pagina. */}
+        <MedidorLectura slug={nota.slug || nota.id} seccion={nota.seccion} />
 
         {nota.tags && nota.tags.length > 0 && (
           <div className="mt-10 flex flex-wrap gap-2 border-t border-filete pt-5">

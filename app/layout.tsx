@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display, Source_Serif_4 } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { AnalyticsRevista } from '@/components/analytics-revista'
 import { WhatsAppButton } from '@/components/whatsapp-button'
 import { siteConfig } from '@/lib/site-config'
 import './globals.css'
@@ -76,8 +76,9 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <WhatsAppButton />
+          {/* Dentro del provider: necesita useAuth() para no contar a la redaccion. */}
+          <AnalyticsRevista />
         </AuthProvider>
-        <Analytics />
       </body>
     </html>
   )

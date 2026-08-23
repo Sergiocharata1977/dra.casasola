@@ -113,4 +113,47 @@ for (const { nombre, datos } of preparadas) {
 }
 
 console.log('');
-console.log('Listo. La portada se rearma sola en menos de un minuto.');
+
+/**
+ * Empujon opcional al cache del sitio.
+ *
+ * Sin esto la portada igual se rearma sola dentro del minuto (ISR), asi que
+ * este paso es un lujo, no un requisito: si no hay secreto cargado o si el
+ * pedido falla, el script termina bien igual. Nunca corta la publicacion, que
+ * a esta altura ya quedo escrita en Firestore.
+ *
+ * El secreto se toma del entorno (REVALIDAR_SECRETO), nunca de un archivo
+ * versionado. Es el mismo valor que hay que cargar en Vercel.
+ */
+async function refrescarSitio() {
+    const secreto = process.env.REVALIDAR_SECRETO;
+    if (!secreto) {
+        console.log('Listo. La portada se rearma sola en menos de un minuto.');
+        return;
+    }
+
+    try {
+        const respuesta = await fetch(SITIO + '/api/revalidar', {
+            method: 'POST',
+            headers: { 'x-secreto': secreto },
+        });
+
+        if (respuesta.ok) {
+            console.log('Listo. El sitio ya se refresco: las notas estan visibles ahora.');
+        } else {
+            console.log(
+                'Listo. El refresco del sitio respondio ' +
+                    respuesta.status +
+                    '; la portada se rearma sola en menos de un minuto.'
+            );
+        }
+    } catch (error) {
+        console.log(
+            'Listo. No se pudo avisar al sitio (' +
+                (error?.message || error) +
+                '); la portada se rearma sola en menos de un minuto.'
+        );
+    }
+}
+
+await refrescarSitio();
